@@ -18,7 +18,8 @@ import { TooltipIconButton } from "@/components/assistant-ui/tooltip-icon-button
 // import { GenerateImageToolUI } from "@/components/tool-ui/generate-image";
 import { GeneratePodcastToolUI } from "@/components/tool-ui/generate-podcast";
 import { GenerateReportToolUI } from "@/components/tool-ui/generate-report";
-import { GenerateVideoPresentationToolUI } from "@/components/tool-ui/video-presentation";
+// DISABLED: Video generation feature
+// import { GenerateVideoPresentationToolUI } from "@/components/tool-ui/video-presentation";
 
 interface PublicThreadProps {
 	footer?: ReactNode;
@@ -153,7 +154,8 @@ const PublicAssistantMessage: FC = () => {
 								by_name: {
 									generate_podcast: GeneratePodcastToolUI,
 									generate_report: GenerateReportToolUI,
-									generate_video_presentation: GenerateVideoPresentationToolUI,
+									// DISABLED: Video generation feature
+									// generate_video_presentation: GenerateVideoPresentationToolUI,
 									// DISABLED: Image generation feature
 									// display_image: GenerateImageToolUI,
 									// generate_image: GenerateImageToolUI,

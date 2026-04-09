@@ -96,14 +96,15 @@ const IS_QUICK_ASSIST_WINDOW =
 	typeof window !== "undefined" &&
 	new URLSearchParams(window.location.search).get("quickAssist") === "true";
 
+// DISABLED: Video generation feature
 // Dynamically import video presentation tool to avoid loading Babel and Remotion in main bundle
-const GenerateVideoPresentationToolUI = dynamic(
-	() =>
-		import("@/components/tool-ui/video-presentation").then((m) => ({
-			default: m.GenerateVideoPresentationToolUI,
-		})),
-	{ ssr: false }
-);
+// const GenerateVideoPresentationToolUI = dynamic(
+// 	() =>
+// 		import("@/components/tool-ui/video-presentation").then((m) => ({
+// 			default: m.GenerateVideoPresentationToolUI,
+// 		})),
+// 	{ ssr: false }
+// );
 
 function extractDomain(url: string): string | undefined {
 	try {
@@ -268,7 +269,8 @@ const AssistantMessageInner: FC = () => {
 							by_name: {
 								generate_report: GenerateReportToolUI,
 								generate_podcast: GeneratePodcastToolUI,
-								generate_video_presentation: GenerateVideoPresentationToolUI,
+								// DISABLED: Video generation feature
+								// generate_video_presentation: GenerateVideoPresentationToolUI,
 								// DISABLED: Image generation feature
 								// display_image: GenerateImageToolUI,
 								// generate_image: GenerateImageToolUI,

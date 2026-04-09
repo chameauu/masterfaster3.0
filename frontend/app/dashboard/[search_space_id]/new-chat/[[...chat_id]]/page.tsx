@@ -130,14 +130,16 @@ function extractMentionedDocuments(content: unknown): MentionedDocumentInfo[] {
 
 /**
  * Tools that should render custom UI in the chat.
+ * DISABLED: Video and image generation features
  */
 const TOOLS_WITH_UI = new Set([
 	"web_search",
 	"generate_podcast",
 	"generate_report",
-	"generate_video_presentation",
-	"display_image",
-	"generate_image",
+	// DISABLED: Video and image generation features
+	// "generate_video_presentation",
+	// "display_image",
+	// "generate_image",
 	"delete_notion_page",
 	"create_notion_page",
 	"update_notion_page",

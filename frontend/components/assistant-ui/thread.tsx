@@ -836,8 +836,13 @@ const ComposerAction: FC<ComposerActionProps> = ({ isBlockedByOtherUser = false 
 
 	const hasWebSearchTool = agentTools?.some((t) => t.name === "web_search") ?? false;
 	const isWebSearchEnabled = hasWebSearchTool && !disabledToolsSet.has("web_search");
+	// DISABLED: Filter out video and image generation tools completely
 	const filteredTools = useMemo(
-		() => agentTools?.filter((t) => t.name !== "web_search"),
+		() => agentTools?.filter((t) => 
+			t.name !== "web_search" && 
+			t.name !== "generate_video_presentation" && 
+			t.name !== "generate_image"
+		) ?? [],
 		[agentTools]
 	);
 	const groupedTools = useMemo(() => {
@@ -1271,7 +1276,9 @@ const TOOL_GROUPS: ToolGroup[] = [
 	},
 	{
 		label: "Generate",
-		tools: ["generate_podcast", "generate_video_presentation", "generate_report", "generate_image"],
+		// DISABLED: Video and image generation features
+		tools: ["generate_podcast", "generate_report"],
+		// tools: ["generate_podcast", "generate_video_presentation", "generate_report", "generate_image"],
 	},
 	{
 		label: "Memory",
