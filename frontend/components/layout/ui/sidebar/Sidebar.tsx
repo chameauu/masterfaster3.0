@@ -9,7 +9,8 @@ import { SIDEBAR_MIN_WIDTH } from "../../hooks/useSidebarResize";
 import type { ChatItem, NavItem, PageUsage, SearchSpace, User } from "../../types/layout.types";
 import { ChatListItem } from "./ChatListItem";
 import { NavSection } from "./NavSection";
-import { PageUsageDisplay } from "./PageUsageDisplay";
+// DISABLED: Page usage/buying feature
+// import { PageUsageDisplay } from "./PageUsageDisplay";
 import { SidebarButton } from "./SidebarButton";
 import { SidebarCollapseButton } from "./SidebarCollapseButton";
 import { SidebarHeader } from "./SidebarHeader";
@@ -267,9 +268,10 @@ export function Sidebar({
 					<NavSection items={navItems} onItemClick={onNavItemClick} isCollapsed={isCollapsed} />
 				)}
 
-				{pageUsage && !isCollapsed && (
+				{/* DISABLED: Page usage/buying feature */}
+				{/* {pageUsage && !isCollapsed && (
 					<PageUsageDisplay pagesUsed={pageUsage.pagesUsed} pagesLimit={pageUsage.pagesLimit} />
-				)}
+				)} */}
 
 				<SidebarUserProfile
 					user={user}
