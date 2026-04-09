@@ -143,7 +143,7 @@ uv --version
 
 4. **Set up backend**
 ```bash
-cd SurfSense-main/backend
+cd backend
 
 # Install dependencies and create virtual environment with uv sync
 # This automatically creates .venv and installs all dependencies from pyproject.toml
@@ -171,7 +171,7 @@ pnpm --version
 
 6. **Set up frontend**
 ```bash
-cd SurfSense-main/frontend
+cd frontend
 
 # Install dependencies using pnpm
 pnpm install
@@ -196,11 +196,11 @@ wget https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/me
 ollama serve
 
 # Terminal 2: Start backend
-cd SurfSense-main/backend
+cd backend
 uv run python main.py
 
 # Terminal 3: Start Celery worker
-cd SurfSense-main/backend
+cd backend
 uv run celery -A app.celery_app worker --loglevel=info
 ```
 
@@ -208,7 +208,7 @@ uv run celery -A app.celery_app worker --loglevel=info
 
 In a new terminal, start the frontend development server:
 ```bash
-cd SurfSense-main/frontend
+cd frontend
 pnpm dev
 ```
 
@@ -319,7 +319,7 @@ Start speaking!
 ### Project Structure
 
 ```
-SurfSense-main/
+masterfaster3.0/
 ├── backend/                    # FastAPI Backend
 │   ├── alembic/               # Database migrations
 │   ├── app/                   # Main application
@@ -387,7 +387,7 @@ git checkout -b feature/your-feature
 2. **Set up your development environment**
 ```bash
 # Backend setup with uv sync
-cd SurfSense-main/backend
+cd backend
 uv sync --group dev  # Installs main dependencies + dev dependencies
 ```
 
