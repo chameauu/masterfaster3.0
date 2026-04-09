@@ -2,9 +2,10 @@ name: Backend Tests
 
 on:
   pull_request:
-    branches: [main, dev]
+    branches: [master, dev]
     types: [opened, synchronize, reopened, ready_for_review]
-
+  push:
+    branches: [master, dev]
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
