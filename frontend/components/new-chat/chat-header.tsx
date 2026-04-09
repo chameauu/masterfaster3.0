@@ -1,16 +1,20 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { ImageConfigDialog } from "@/components/shared/image-config-dialog";
+// DISABLED: Image generation feature
+// import { ImageConfigDialog } from "@/components/shared/image-config-dialog";
 import { ModelConfigDialog } from "@/components/shared/model-config-dialog";
-import { VisionConfigDialog } from "@/components/shared/vision-config-dialog";
+// DISABLED: Vision model feature (keeping only LLM)
+// import { VisionConfigDialog } from "@/components/shared/vision-config-dialog";
 import type {
-	GlobalImageGenConfig,
+	// DISABLED: Image generation feature
+	// GlobalImageGenConfig,
 	GlobalNewLLMConfig,
-	GlobalVisionLLMConfig,
-	ImageGenerationConfig,
+	// DISABLED: Vision model feature
+	// GlobalVisionLLMConfig,
+	// ImageGenerationConfig,
 	NewLLMConfigPublic,
-	VisionLLMConfig,
+	// VisionLLMConfig,
 } from "@/contracts/types/new-llm-config.types";
 import { ModelSelector } from "./model-selector";
 
@@ -28,21 +32,23 @@ export function ChatHeader({ searchSpaceId, className }: ChatHeaderProps) {
 	const [isGlobal, setIsGlobal] = useState(false);
 	const [dialogMode, setDialogMode] = useState<"create" | "edit" | "view">("view");
 
+	// DISABLED: Image generation feature
 	// Image config dialog state
-	const [imageDialogOpen, setImageDialogOpen] = useState(false);
-	const [selectedImageConfig, setSelectedImageConfig] = useState<
-		ImageGenerationConfig | GlobalImageGenConfig | null
-	>(null);
-	const [isImageGlobal, setIsImageGlobal] = useState(false);
-	const [imageDialogMode, setImageDialogMode] = useState<"create" | "edit" | "view">("view");
+	// const [imageDialogOpen, setImageDialogOpen] = useState(false);
+	// const [selectedImageConfig, setSelectedImageConfig] = useState<
+	// 	ImageGenerationConfig | GlobalImageGenConfig | null
+	// >(null);
+	// const [isImageGlobal, setIsImageGlobal] = useState(false);
+	// const [imageDialogMode, setImageDialogMode] = useState<"create" | "edit" | "view">("view");
 
+	// DISABLED: Vision model feature (keeping only LLM)
 	// Vision config dialog state
-	const [visionDialogOpen, setVisionDialogOpen] = useState(false);
-	const [selectedVisionConfig, setSelectedVisionConfig] = useState<
-		VisionLLMConfig | GlobalVisionLLMConfig | null
-	>(null);
-	const [isVisionGlobal, setIsVisionGlobal] = useState(false);
-	const [visionDialogMode, setVisionDialogMode] = useState<"create" | "edit" | "view">("view");
+	// const [visionDialogOpen, setVisionDialogOpen] = useState(false);
+	// const [selectedVisionConfig, setSelectedVisionConfig] = useState<
+	// 	VisionLLMConfig | GlobalVisionLLMConfig | null
+	// >(null);
+	// const [isVisionGlobal, setIsVisionGlobal] = useState(false);
+	// const [visionDialogMode, setVisionDialogMode] = useState<"create" | "edit" | "view">("view");
 
 	// LLM handlers
 	const handleEditLLMConfig = useCallback(
@@ -67,61 +73,65 @@ export function ChatHeader({ searchSpaceId, className }: ChatHeaderProps) {
 		if (!open) setSelectedConfig(null);
 	}, []);
 
+	// DISABLED: Image generation feature
 	// Image model handlers
-	const handleAddImageModel = useCallback(() => {
-		setSelectedImageConfig(null);
-		setIsImageGlobal(false);
-		setImageDialogMode("create");
-		setImageDialogOpen(true);
-	}, []);
+	// const handleAddImageModel = useCallback(() => {
+	// 	setSelectedImageConfig(null);
+	// 	setIsImageGlobal(false);
+	// 	setImageDialogMode("create");
+	// 	setImageDialogOpen(true);
+	// }, []);
 
-	const handleEditImageConfig = useCallback(
-		(config: ImageGenerationConfig | GlobalImageGenConfig, global: boolean) => {
-			setSelectedImageConfig(config);
-			setIsImageGlobal(global);
-			setImageDialogMode(global ? "view" : "edit");
-			setImageDialogOpen(true);
-		},
-		[]
-	);
+	// const handleEditImageConfig = useCallback(
+	// 	(config: ImageGenerationConfig | GlobalImageGenConfig, global: boolean) => {
+	// 		setSelectedImageConfig(config);
+	// 		setIsImageGlobal(global);
+	// 		setImageDialogMode(global ? "view" : "edit");
+	// 		setImageDialogOpen(true);
+	// 	},
+	// 	[]
+	// );
 
-	const handleImageDialogClose = useCallback((open: boolean) => {
-		setImageDialogOpen(open);
-		if (!open) setSelectedImageConfig(null);
-	}, []);
+	// const handleImageDialogClose = useCallback((open: boolean) => {
+	// 	setImageDialogOpen(open);
+	// 	if (!open) setSelectedImageConfig(null);
+	// }, []);
 
+	// DISABLED: Vision model feature (keeping only LLM)
 	// Vision model handlers
-	const handleAddVisionModel = useCallback(() => {
-		setSelectedVisionConfig(null);
-		setIsVisionGlobal(false);
-		setVisionDialogMode("create");
-		setVisionDialogOpen(true);
-	}, []);
+	// const handleAddVisionModel = useCallback(() => {
+	// 	setSelectedVisionConfig(null);
+	// 	setIsVisionGlobal(false);
+	// 	setVisionDialogMode("create");
+	// 	setVisionDialogOpen(true);
+	// }, []);
 
-	const handleEditVisionConfig = useCallback(
-		(config: VisionLLMConfig | GlobalVisionLLMConfig, global: boolean) => {
-			setSelectedVisionConfig(config);
-			setIsVisionGlobal(global);
-			setVisionDialogMode(global ? "view" : "edit");
-			setVisionDialogOpen(true);
-		},
-		[]
-	);
+	// const handleEditVisionConfig = useCallback(
+	// 	(config: VisionLLMConfig | GlobalVisionLLMConfig, global: boolean) => {
+	// 		setSelectedVisionConfig(config);
+	// 		setIsVisionGlobal(global);
+	// 		setVisionDialogMode(global ? "view" : "edit");
+	// 		setVisionDialogOpen(true);
+	// 	},
+	// 	[]
+	// );
 
-	const handleVisionDialogClose = useCallback((open: boolean) => {
-		setVisionDialogOpen(open);
-		if (!open) setSelectedVisionConfig(null);
-	}, []);
+	// const handleVisionDialogClose = useCallback((open: boolean) => {
+	// 	setVisionDialogOpen(open);
+	// 	if (!open) setSelectedVisionConfig(null);
+	// }, []);
 
 	return (
 		<div className="flex items-center gap-2">
 			<ModelSelector
 				onEditLLM={handleEditLLMConfig}
 				onAddNewLLM={handleAddNewLLM}
-				onEditImage={handleEditImageConfig}
-				onAddNewImage={handleAddImageModel}
-				onEditVision={handleEditVisionConfig}
-				onAddNewVision={handleAddVisionModel}
+				// DISABLED: Image generation feature
+				// onEditImage={handleEditImageConfig}
+				// onAddNewImage={handleAddImageModel}
+				// DISABLED: Vision model feature
+				// onEditVision={handleEditVisionConfig}
+				// onAddNewVision={handleAddVisionModel}
 				className={className}
 			/>
 			<ModelConfigDialog
@@ -132,22 +142,24 @@ export function ChatHeader({ searchSpaceId, className }: ChatHeaderProps) {
 				searchSpaceId={searchSpaceId}
 				mode={dialogMode}
 			/>
-			<ImageConfigDialog
+			{/* DISABLED: Image generation feature */}
+			{/* <ImageConfigDialog
 				open={imageDialogOpen}
 				onOpenChange={handleImageDialogClose}
 				config={selectedImageConfig}
 				isGlobal={isImageGlobal}
 				searchSpaceId={searchSpaceId}
 				mode={imageDialogMode}
-			/>
-			<VisionConfigDialog
+			/> */}
+			{/* DISABLED: Vision model feature (keeping only LLM) */}
+			{/* <VisionConfigDialog
 				open={visionDialogOpen}
 				onOpenChange={handleVisionDialogClose}
 				config={selectedVisionConfig}
 				isGlobal={isVisionGlobal}
 				searchSpaceId={searchSpaceId}
 				mode={visionDialogMode}
-			/>
+			/> */}
 		</div>
 	);
 }

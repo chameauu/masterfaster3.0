@@ -27,16 +27,18 @@ export function SearchSpaceSettingsDialog({ searchSpaceId }: SearchSpaceSettings
 		{ value: "general", label: t("nav_general"), icon: <FileText className="h-4 w-4" /> },
 		{ value: "models", label: t("nav_agent_configs"), icon: <Bot className="h-4 w-4" /> },
 		{ value: "roles", label: t("nav_role_assignments"), icon: <Brain className="h-4 w-4" /> },
-		{
-			value: "image-models",
-			label: t("nav_image_models"),
-			icon: <ImageIcon className="h-4 w-4" />,
-		},
-		{
-			value: "vision-models",
-			label: t("nav_vision_models"),
-			icon: <Eye className="h-4 w-4" />,
-		},
+		// DISABLED: Image generation feature
+		// {
+		// 	value: "image-models",
+		// 	label: t("nav_image_models"),
+		// 	icon: <ImageIcon className="h-4 w-4" />,
+		// },
+		// DISABLED: Vision model feature (keeping only LLM)
+		// {
+		// 	value: "vision-models",
+		// 	label: t("nav_vision_models"),
+		// 	icon: <Eye className="h-4 w-4" />,
+		// },
 		{ value: "team-roles", label: t("nav_team_roles"), icon: <Shield className="h-4 w-4" /> },
 		{
 			value: "prompts",
@@ -50,8 +52,10 @@ export function SearchSpaceSettingsDialog({ searchSpaceId }: SearchSpaceSettings
 		general: <GeneralSettingsManager searchSpaceId={searchSpaceId} />,
 		models: <ModelConfigManager searchSpaceId={searchSpaceId} />,
 		roles: <LLMRoleManager searchSpaceId={searchSpaceId} />,
-		"image-models": <ImageModelManager searchSpaceId={searchSpaceId} />,
-		"vision-models": <VisionModelManager searchSpaceId={searchSpaceId} />,
+		// DISABLED: Image generation feature
+		// "image-models": <ImageModelManager searchSpaceId={searchSpaceId} />,
+		// DISABLED: Vision model feature (keeping only LLM)
+		// "vision-models": <VisionModelManager searchSpaceId={searchSpaceId} />,
 		"team-roles": <RolesManager searchSpaceId={searchSpaceId} />,
 		prompts: <PromptConfigManager searchSpaceId={searchSpaceId} />,
 		"public-links": <PublicChatSnapshotsManager searchSpaceId={searchSpaceId} />,

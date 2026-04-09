@@ -360,39 +360,7 @@ export function ModelSelector({
 								</>
 							)}
 
-							{/* Divider */}
-							<div className="h-4 w-px bg-border/60 dark:bg-white/10 mx-0.5" />
-
-							{/* Image section */}
-							{currentImageConfig ? (
-								<>
-									{getProviderIcon(currentImageConfig.provider, {
-										isAutoMode: isImageAutoMode ?? false,
-									})}
-									<span className="max-w-[80px] md:max-w-[100px] truncate hidden md:inline">
-										{currentImageConfig.name}
-									</span>
-								</>
-							) : (
-								<ImageIcon className="size-4 text-muted-foreground" />
-							)}
-
-							{/* Divider */}
-							<div className="h-4 w-px bg-border/60 dark:bg-white/10 mx-0.5" />
-
-							{/* Vision section */}
-							{currentVisionConfig ? (
-								<>
-									{getProviderIcon(currentVisionConfig.provider, {
-										isAutoMode: isVisionAutoMode ?? false,
-									})}
-									<span className="max-w-[80px] md:max-w-[100px] truncate hidden md:inline">
-										{currentVisionConfig.name}
-									</span>
-								</>
-							) : (
-								<Eye className="size-4 text-muted-foreground" />
-							)}
+							{/* DISABLED: Image and Vision model sections removed from button display */}
 						</>
 					)}
 					<ChevronDown className="h-3.5 w-3.5 text-muted-foreground ml-1 shrink-0" />
@@ -404,34 +372,37 @@ export function ModelSelector({
 				align="start"
 				sideOffset={8}
 			>
+				{/* DISABLED: Only showing LLM models, hiding Image and Vision tabs */}
 				<Tabs
 					value={activeTab}
 					onValueChange={(v) => setActiveTab(v as "llm" | "image" | "vision")}
 					className="w-full"
 				>
 					<div className="border-b border-border/80 dark:border-neutral-800">
-						<TabsList className="w-full grid grid-cols-3 rounded-none rounded-t-lg bg-transparent h-11 p-0 gap-0">
+						<TabsList className="w-full rounded-none rounded-t-lg bg-transparent h-11 p-0 gap-0">
 							<TabsTrigger
 								value="llm"
-								className="gap-1.5 text-sm font-medium rounded-none text-muted-foreground transition-all duration-200 h-full bg-transparent data-[state=active]:bg-transparent shadow-none data-[state=active]:shadow-none border-b-[1.5px] border-transparent data-[state=active]:border-foreground dark:data-[state=active]:border-white data-[state=active]:text-foreground"
+								className="w-full gap-1.5 text-sm font-medium rounded-none text-muted-foreground transition-all duration-200 h-full bg-transparent data-[state=active]:bg-transparent shadow-none data-[state=active]:shadow-none border-b-[1.5px] border-transparent data-[state=active]:border-foreground dark:data-[state=active]:border-white data-[state=active]:text-foreground"
 							>
 								<Zap className="size-3.5" />
 								LLM
 							</TabsTrigger>
-							<TabsTrigger
+							{/* DISABLED: Image generation feature */}
+							{/* <TabsTrigger
 								value="image"
 								className="gap-1.5 text-sm font-medium rounded-none text-muted-foreground transition-all duration-200 h-full bg-transparent data-[state=active]:bg-transparent shadow-none data-[state=active]:shadow-none border-b-[1.5px] border-transparent data-[state=active]:border-foreground dark:data-[state=active]:border-white data-[state=active]:text-foreground"
 							>
 								<ImageIcon className="size-3.5" />
 								Image
-							</TabsTrigger>
-							<TabsTrigger
+							</TabsTrigger> */}
+							{/* DISABLED: Vision model feature */}
+							{/* <TabsTrigger
 								value="vision"
 								className="gap-1.5 text-sm font-medium rounded-none text-muted-foreground transition-all duration-200 h-full bg-transparent data-[state=active]:bg-transparent shadow-none data-[state=active]:shadow-none border-b-[1.5px] border-transparent data-[state=active]:border-foreground dark:data-[state=active]:border-white data-[state=active]:text-foreground"
 							>
 								<Eye className="size-3.5" />
 								Vision
-							</TabsTrigger>
+							</TabsTrigger> */}
 						</TabsList>
 					</div>
 
@@ -623,345 +594,8 @@ export function ModelSelector({
 						</Command>
 					</TabsContent>
 
-					{/* ─── Image Tab ─── */}
-					<TabsContent value="image" className="mt-0">
-						<Command
-							shouldFilter={false}
-							className="rounded-none rounded-b-lg dark:bg-neutral-900 [&_[data-slot=command-input-wrapper]]:border-0 [&_[data-slot=command-input-wrapper]]:px-0 [&_[data-slot=command-input-wrapper]]:gap-2"
-						>
-							{totalImageModels > 3 && (
-								<div className="px-2 md:px-3 py-1.5 md:py-2">
-									<CommandInput
-										placeholder="Search models"
-										value={imageSearchQuery}
-										onValueChange={setImageSearchQuery}
-										className="h-7 md:h-8 w-full text-xs md:text-sm border-0 bg-transparent focus:ring-0 placeholder:text-muted-foreground/60"
-									/>
-								</div>
-							)}
-							<CommandList
-								className="max-h-[300px] md:max-h-[400px] overflow-y-auto"
-								onScroll={handleListScroll(setImageScrollPos)}
-								style={{
-									maskImage: `linear-gradient(to bottom, ${imageScrollPos === "top" ? "black" : "transparent"}, black 16px, black calc(100% - 16px), ${imageScrollPos === "bottom" ? "black" : "transparent"})`,
-									WebkitMaskImage: `linear-gradient(to bottom, ${imageScrollPos === "top" ? "black" : "transparent"}, black 16px, black calc(100% - 16px), ${imageScrollPos === "bottom" ? "black" : "transparent"})`,
-								}}
-							>
-								<CommandEmpty className="py-8 text-center">
-									<div className="flex flex-col items-center gap-2">
-										<Search className="size-8 text-muted-foreground" />
-										<p className="text-sm text-muted-foreground">No image models found</p>
-										<p className="text-xs text-muted-foreground/60">Try a different search term</p>
-									</div>
-								</CommandEmpty>
-
-								{/* Global Image Configs */}
-								{filteredImageGlobal.length > 0 && (
-									<CommandGroup>
-										<div className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-muted-foreground tracking-wider">
-											Global Image Models
-										</div>
-										{filteredImageGlobal.map((config) => {
-											const isSelected = currentImageConfig?.id === config.id;
-											const isAuto = "is_auto_mode" in config && config.is_auto_mode;
-											return (
-												<CommandItem
-													key={`img-g-${config.id}`}
-													value={`img-g-${config.id}`}
-													onSelect={() => handleSelectImage(config.id)}
-													className={cn(
-														"mx-2 rounded-lg mb-1 cursor-pointer group transition-all hover:bg-accent/50 dark:hover:bg-white/[0.06]",
-														isSelected && "bg-accent/80 dark:bg-white/[0.06]",
-														isAuto && ""
-													)}
-												>
-													<div className="flex items-center gap-3 min-w-0 flex-1">
-														<div className="shrink-0">
-															{getProviderIcon(config.provider, { isAutoMode: isAuto })}
-														</div>
-														<div className="min-w-0 flex-1">
-															<div className="flex items-center gap-2">
-																<span className="font-medium truncate">{config.name}</span>
-																{isAuto && (
-																	<Badge
-																		variant="secondary"
-																		className="text-[9px] px-1 py-0 h-3.5 bg-violet-800 text-white dark:bg-violet-800 dark:text-white border-0"
-																	>
-																		Recommended
-																	</Badge>
-																)}
-																{isSelected && <Check className="size-3.5 text-primary shrink-0" />}
-															</div>
-															<span className="text-xs text-muted-foreground truncate block">
-																{isAuto ? "Auto Mode" : config.model_name}
-															</span>
-														</div>
-														{onEditImage && !isAuto && (
-															<Button
-																variant="ghost"
-																size="icon"
-																className="size-7 shrink-0 rounded-md hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity"
-																onClick={(e) => {
-																	e.stopPropagation();
-																	setOpen(false);
-																	onEditImage(config, true);
-																}}
-															>
-																<Edit3 className="size-3.5 text-muted-foreground" />
-															</Button>
-														)}
-													</div>
-												</CommandItem>
-											);
-										})}
-									</CommandGroup>
-								)}
-
-								{/* User Image Configs */}
-								{filteredImageUser.length > 0 && (
-									<>
-										{filteredImageGlobal.length > 0 && (
-											<CommandSeparator className="my-1 mx-4 bg-border/60" />
-										)}
-										<CommandGroup>
-											<div className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-muted-foreground tracking-wider">
-												Your Image Models
-											</div>
-											{filteredImageUser.map((config) => {
-												const isSelected = currentImageConfig?.id === config.id;
-												return (
-													<CommandItem
-														key={`img-u-${config.id}`}
-														value={`img-u-${config.id}`}
-														onSelect={() => handleSelectImage(config.id)}
-														className={cn(
-															"mx-2 rounded-lg mb-1 cursor-pointer group transition-all hover:bg-accent/50 dark:hover:bg-white/[0.06]",
-															isSelected && "bg-accent/80 dark:bg-white/[0.06]"
-														)}
-													>
-														<div className="flex items-center gap-3 min-w-0 flex-1">
-															<div className="shrink-0">{getProviderIcon(config.provider)}</div>
-															<div className="min-w-0 flex-1">
-																<div className="flex items-center gap-2">
-																	<span className="font-medium truncate">{config.name}</span>
-																	{isSelected && (
-																		<Check className="size-3.5 text-primary shrink-0" />
-																	)}
-																</div>
-																<span className="text-xs text-muted-foreground truncate block">
-																	{config.model_name}
-																</span>
-															</div>
-															{onEditImage && (
-																<Button
-																	variant="ghost"
-																	size="icon"
-																	className="h-7 w-7 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-																	onClick={(e) => {
-																		e.stopPropagation();
-																		setOpen(false);
-																		onEditImage(config, false);
-																	}}
-																>
-																	<Edit3 className="size-3.5 text-muted-foreground" />
-																</Button>
-															)}
-														</div>
-													</CommandItem>
-												);
-											})}
-										</CommandGroup>
-									</>
-								)}
-
-								{/* Add New Image Config */}
-								{onAddNewImage && (
-									<div className="p-2 bg-muted/20 dark:bg-neutral-900">
-										<Button
-											variant="ghost"
-											size="sm"
-											className="w-full justify-start gap-2 h-9 rounded-lg hover:bg-accent/50 dark:hover:bg-white/[0.06]"
-											onClick={() => {
-												setOpen(false);
-												onAddNewImage();
-											}}
-										>
-											<Plus className="size-4 text-primary" />
-											<span className="text-sm font-medium">Add Image Model</span>
-										</Button>
-									</div>
-								)}
-							</CommandList>
-						</Command>
-					</TabsContent>
-
-					{/* ─── Vision Tab ─── */}
-					<TabsContent value="vision" className="mt-0">
-						<Command
-							shouldFilter={false}
-							className="rounded-none rounded-b-lg dark:bg-neutral-900 [&_[data-slot=command-input-wrapper]]:border-0 [&_[data-slot=command-input-wrapper]]:px-0 [&_[data-slot=command-input-wrapper]]:gap-2"
-						>
-							{totalVisionModels > 3 && (
-								<div className="px-2 md:px-3 py-1.5 md:py-2">
-									<CommandInput
-										placeholder="Search vision models"
-										value={visionSearchQuery}
-										onValueChange={setVisionSearchQuery}
-										className="h-7 md:h-8 w-full text-xs md:text-sm border-0 bg-transparent focus:ring-0 placeholder:text-muted-foreground/60"
-									/>
-								</div>
-							)}
-							<CommandList
-								className="max-h-[300px] md:max-h-[400px] overflow-y-auto"
-								onScroll={handleListScroll(setVisionScrollPos)}
-								style={{
-									maskImage: `linear-gradient(to bottom, ${visionScrollPos === "top" ? "black" : "transparent"}, black 16px, black calc(100% - 16px), ${visionScrollPos === "bottom" ? "black" : "transparent"})`,
-									WebkitMaskImage: `linear-gradient(to bottom, ${visionScrollPos === "top" ? "black" : "transparent"}, black 16px, black calc(100% - 16px), ${visionScrollPos === "bottom" ? "black" : "transparent"})`,
-								}}
-							>
-								<CommandEmpty className="py-8 text-center">
-									<div className="flex flex-col items-center gap-2">
-										<Search className="size-8 text-muted-foreground" />
-										<p className="text-sm text-muted-foreground">No vision models found</p>
-										<p className="text-xs text-muted-foreground/60">Try a different search term</p>
-									</div>
-								</CommandEmpty>
-
-								{filteredVisionGlobal.length > 0 && (
-									<CommandGroup>
-										<div className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-muted-foreground tracking-wider">
-											Global Vision Models
-										</div>
-										{filteredVisionGlobal.map((config) => {
-											const isSelected = currentVisionConfig?.id === config.id;
-											const isAuto = "is_auto_mode" in config && config.is_auto_mode;
-											return (
-												<CommandItem
-													key={`vis-g-${config.id}`}
-													value={`vis-g-${config.id}`}
-													onSelect={() => handleSelectVision(config.id)}
-													className={cn(
-														"mx-2 rounded-lg mb-1 cursor-pointer group transition-all hover:bg-accent/50 dark:hover:bg-white/[0.06]",
-														isSelected && "bg-accent/80 dark:bg-white/[0.06]"
-													)}
-												>
-													<div className="flex items-center gap-3 min-w-0 flex-1">
-														<div className="shrink-0">
-															{getProviderIcon(config.provider, { isAutoMode: isAuto })}
-														</div>
-														<div className="min-w-0 flex-1">
-															<div className="flex items-center gap-2">
-																<span className="font-medium truncate">{config.name}</span>
-																{isAuto && (
-																	<Badge
-																		variant="secondary"
-																		className="text-[9px] px-1 py-0 h-3.5 bg-violet-800 text-white dark:bg-violet-800 dark:text-white border-0"
-																	>
-																		Recommended
-																	</Badge>
-																)}
-																{isSelected && <Check className="size-3.5 text-primary shrink-0" />}
-															</div>
-															<span className="text-xs text-muted-foreground truncate block">
-																{isAuto ? "Auto Mode" : config.model_name}
-															</span>
-														</div>
-														{onEditVision && !isAuto && (
-															<Button
-																variant="ghost"
-																size="icon"
-																className="size-7 shrink-0 rounded-md hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity"
-																onClick={(e) => {
-																	e.stopPropagation();
-																	setOpen(false);
-																	onEditVision(config as VisionLLMConfig, true);
-																}}
-															>
-																<Edit3 className="size-3.5 text-muted-foreground" />
-															</Button>
-														)}
-													</div>
-												</CommandItem>
-											);
-										})}
-									</CommandGroup>
-								)}
-
-								{filteredVisionUser.length > 0 && (
-									<>
-										{filteredVisionGlobal.length > 0 && (
-											<CommandSeparator className="my-1 mx-4 bg-border/60" />
-										)}
-										<CommandGroup>
-											<div className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-muted-foreground tracking-wider">
-												Your Vision Models
-											</div>
-											{filteredVisionUser.map((config) => {
-												const isSelected = currentVisionConfig?.id === config.id;
-												return (
-													<CommandItem
-														key={`vis-u-${config.id}`}
-														value={`vis-u-${config.id}`}
-														onSelect={() => handleSelectVision(config.id)}
-														className={cn(
-															"mx-2 rounded-lg mb-1 cursor-pointer group transition-all hover:bg-accent/50 dark:hover:bg-white/[0.06]",
-															isSelected && "bg-accent/80 dark:bg-white/[0.06]"
-														)}
-													>
-														<div className="flex items-center gap-3 min-w-0 flex-1">
-															<div className="shrink-0">{getProviderIcon(config.provider)}</div>
-															<div className="min-w-0 flex-1">
-																<div className="flex items-center gap-2">
-																	<span className="font-medium truncate">{config.name}</span>
-																	{isSelected && (
-																		<Check className="size-3.5 text-primary shrink-0" />
-																	)}
-																</div>
-																<span className="text-xs text-muted-foreground truncate block">
-																	{config.model_name}
-																</span>
-															</div>
-															{onEditVision && (
-																<Button
-																	variant="ghost"
-																	size="icon"
-																	className="h-7 w-7 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-																	onClick={(e) => {
-																		e.stopPropagation();
-																		setOpen(false);
-																		onEditVision(config, false);
-																	}}
-																>
-																	<Edit3 className="size-3.5 text-muted-foreground" />
-																</Button>
-															)}
-														</div>
-													</CommandItem>
-												);
-											})}
-										</CommandGroup>
-									</>
-								)}
-
-								{onAddNewVision && (
-									<div className="p-2 bg-muted/20 dark:bg-neutral-900">
-										<Button
-											variant="ghost"
-											size="sm"
-											className="w-full justify-start gap-2 h-9 rounded-lg hover:bg-accent/50 dark:hover:bg-white/[0.06]"
-											onClick={() => {
-												setOpen(false);
-												onAddNewVision();
-											}}
-										>
-											<Plus className="size-4 text-primary" />
-											<span className="text-sm font-medium">Add Vision Model</span>
-										</Button>
-									</div>
-								)}
-							</CommandList>
-						</Command>
-					</TabsContent>
+					{/* DISABLED: Image generation feature - Tab content removed */}
+					{/* DISABLED: Vision model feature - Tab content removed */}
 				</Tabs>
 			</PopoverContent>
 		</Popover>

@@ -3,6 +3,7 @@
 .env
 node_modules/
 .ruff_cache/
+disable/
 .venv
 .pnpm-store
 .DS_Store

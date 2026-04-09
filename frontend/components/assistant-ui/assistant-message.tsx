@@ -38,7 +38,8 @@ import {
 	UpdateConfluencePageToolUI,
 } from "@/components/tool-ui/confluence";
 import { CreateDropboxFileToolUI, DeleteDropboxFileToolUI } from "@/components/tool-ui/dropbox";
-import { GenerateImageToolUI } from "@/components/tool-ui/generate-image";
+// DISABLED: Image generation feature
+// import { GenerateImageToolUI } from "@/components/tool-ui/generate-image";
 import { GeneratePodcastToolUI } from "@/components/tool-ui/generate-podcast";
 import { GenerateReportToolUI } from "@/components/tool-ui/generate-report";
 import {
@@ -268,8 +269,9 @@ const AssistantMessageInner: FC = () => {
 								generate_report: GenerateReportToolUI,
 								generate_podcast: GeneratePodcastToolUI,
 								generate_video_presentation: GenerateVideoPresentationToolUI,
-								display_image: GenerateImageToolUI,
-								generate_image: GenerateImageToolUI,
+								// DISABLED: Image generation feature
+								// display_image: GenerateImageToolUI,
+								// generate_image: GenerateImageToolUI,
 								save_memory: SaveMemoryToolUI,
 								recall_memory: RecallMemoryToolUI,
 								execute: SandboxExecuteToolUI,

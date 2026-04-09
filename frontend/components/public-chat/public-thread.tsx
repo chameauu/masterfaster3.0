@@ -14,7 +14,8 @@ import { CitationMetadataProvider } from "@/components/assistant-ui/citation-met
 import { MarkdownText } from "@/components/assistant-ui/markdown-text";
 import { ToolFallback } from "@/components/assistant-ui/tool-fallback";
 import { TooltipIconButton } from "@/components/assistant-ui/tooltip-icon-button";
-import { GenerateImageToolUI } from "@/components/tool-ui/generate-image";
+// DISABLED: Image generation feature
+// import { GenerateImageToolUI } from "@/components/tool-ui/generate-image";
 import { GeneratePodcastToolUI } from "@/components/tool-ui/generate-podcast";
 import { GenerateReportToolUI } from "@/components/tool-ui/generate-report";
 import { GenerateVideoPresentationToolUI } from "@/components/tool-ui/video-presentation";
@@ -153,8 +154,9 @@ const PublicAssistantMessage: FC = () => {
 									generate_podcast: GeneratePodcastToolUI,
 									generate_report: GenerateReportToolUI,
 									generate_video_presentation: GenerateVideoPresentationToolUI,
-									display_image: GenerateImageToolUI,
-									generate_image: GenerateImageToolUI,
+									// DISABLED: Image generation feature
+									// display_image: GenerateImageToolUI,
+									// generate_image: GenerateImageToolUI,
 									web_search: () => null,
 									link_preview: () => null,
 									multi_link_preview: () => null,
