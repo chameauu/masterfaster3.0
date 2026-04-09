@@ -116,8 +116,8 @@ Piper TTS → User hears response
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/yourusername/voice-assistant.git
-cd voice-assistant
+git clone https://github.com/chameauu/masterfaster3.0
+cd masterfaster3.0
 ```
 
 2. **Install Ollama and Gemma 4 E2B**
