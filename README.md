@@ -106,6 +106,9 @@ Piper TTS → User hears response
 - PostgreSQL 14+
 - Redis 7+
 - Ollama (for Gemma 4 E2B)
+- Node.js 18+ (for frontend)
+- uv (Package manager for Python) - see installation below
+- pnpm (Package manager for Node.js) - see installation below
 - 8-16GB RAM (16GB recommended)
 - Optional: GPU with 4-6GB VRAM (10x faster)
 
@@ -126,26 +129,58 @@ curl https://ollama.ai/install.sh | sh
 ollama pull gemma4:2b-e2b-q4_0
 ```
 
-3. **Set up backend**
+3. **Install uv package manager**
 ```bash
-cd SurfSense-main/surfsense_backend
+# Install uv
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+# On Windows, use:
+# powershell -ExecutionPolicy BypassUser -c "irm https://astral.sh/uv/install.ps1 | iex"
 
-# Install dependencies
-pip install -e .
+# Verify installation
+uv --version
+```
+
+4. **Set up backend**
+```bash
+cd SurfSense-main/backend
+
+# Install dependencies and create virtual environment with uv sync
+# This automatically creates .venv and installs all dependencies from pyproject.toml
+uv sync
+
+# Activate virtual environment (optional - uv run works without activation)
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
 # Set up environment variables
 cp .env.example .env
 # Edit .env with your configuration
 
 # Run database migrations
-alembic upgrade head
+uv run alembic upgrade head
 ```
 
-4. **Install Piper TTS**
+5. **Install pnpm package manager**
+```bash
+# Install pnpm
+npm install -g pnpm
+
+# Verify installation
+pnpm --version
+```
+
+6. **Set up frontend**
+```bash
+cd SurfSense-main/frontend
+
+# Install dependencies using pnpm
+pnpm install
+
+# Build the frontend (optional, for production)
+pnpm build
+```
+
+7. **Install Piper TTS**
 ```bash
 # Download Piper
 wget https://github.com/rhasspy/piper/releases/download/v1.2.0/piper_amd64.tar.gz
@@ -155,22 +190,31 @@ tar -xzf piper_amd64.tar.gz
 wget https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx
 ```
 
-5. **Start services**
+8. **Start services**
 ```bash
 # Terminal 1: Start Ollama
 ollama serve
 
 # Terminal 2: Start backend
-cd surfsense_backend
-python main.py
+cd SurfSense-main/backend
+uv run python main.py
 
 # Terminal 3: Start Celery worker
-celery -A app.celery_app worker --loglevel=info
+cd SurfSense-main/backend
+uv run celery -A app.celery_app worker --loglevel=info
 ```
 
-6. **Access voice assistant**
+9. **Access voice assistant**
+
+In a new terminal, start the frontend development server:
+```bash
+cd SurfSense-main/frontend
+pnpm dev
 ```
-Open browser: http://localhost:8000/dashboard/voice
+
+Then open your browser:
+```
+http://localhost:3000
 Grant microphone permission
 Start speaking!
 ```
@@ -275,22 +319,62 @@ Start speaking!
 ### Project Structure
 
 ```
-voice-assistant/
-├── SurfSense-main/
-│   ├── surfsense_backend/      # Backend API
-│   │   ├── app/
-│   │   │   ├── agents/         # AI agents
-│   │   │   ├── routes/         # API routes
-│   │   │   ├── services/       # Business logic
-│   │   │   └── ...
+SurfSense-main/
+├── backend/                    # FastAPI Backend
+│   ├── alembic/               # Database migrations
+│   ├── app/                   # Main application
+│   │   ├── agents/            # AI agents for task automation
+│   │   ├── config/            # Configuration management
+│   │   ├── connectors/        # Data connectors (20+ sources)
+│   │   ├── etl_pipeline/      # ETL pipeline for data ingestion
+│   │   ├── indexing_pipeline/ # Vector indexing pipeline
+│   │   ├── prompts/           # Prompt templates for LLM
+│   │   ├── retriever/         # RAG retriever for search
+│   │   ├── routes/            # API endpoints
+│   │   ├── schemas/           # Pydantic data schemas
+│   │   ├── services/          # Business logic services
+│   │   ├── tasks/             # Celery async tasks
+│   │   ├── templates/         # HTML/Jinja templates
+│   │   └── utils/             # Utility functions
+│   ├── scripts/               # Helper scripts
+│   ├── tests/                 # Test suite (unit & integration)
+│   ├── celery_worker.py       # Celery worker process
+│   ├── main.py                # FastAPI entry point
+│   ├── pyproject.toml         # Python dependencies
+│   └── Dockerfile             # Backend container image
+├── frontend/                  # Next.js Frontend
+│   ├── app/                   # Next.js app directory
+│   │   ├── (home)/            # Home page route group
+│   │   ├── api/               # API route handlers
+│   │   ├── auth/              # Authentication routes
+│   │   ├── dashboard/         # User dashboard
+│   │   ├── db/                # Database-related routes
 │   │   └── ...
-│   └── surfsense_web/          # Frontend (minimal for voice)
-│       ├── app/
-│       │   └── dashboard/
-│       │       └── voice/      # Voice interface
-│       └── ...
-├── docs/                       # Documentation
-└── README.md                   # This file
+│   ├── components/            # React components
+│   ├── contexts/              # React context providers
+│   ├── hooks/                 # Custom React hooks
+│   ├── lib/                   # Utility functions
+│   ├── public/                # Static assets
+│   ├── package.json           # Node.js dependencies
+│   ├── tsconfig.json          # TypeScript configuration
+│   ├── next.config.ts         # Next.js configuration
+│   ├── tailwind.config.js     # Tailwind CSS configuration
+│   └── Dockerfile             # Frontend container image
+├── docker/                    # Docker & orchestration
+│   ├── docker-compose.yml     # Production compose file
+│   ├── postgresql.conf        # PostgreSQL settings
+│   ├── searxng/               # SearXNG search engine config
+│   └── scripts/               # Deployment scripts
+├── docs/                      # Documentation
+│   ├── ACCESSIBILITY_FIRST_DESIGN.md
+│   ├── VOICE_ASSISTANT_ARCHITECTURE.md
+│   ├── VOICE_ASSISTANT_IMPLEMENTATION_STEPS.md
+│   └── ...
+├── biome.json                 # Biome linter configuration
+├── docker-compose.dev.yml     # Development compose file
+├── package.json               # Root package configuration
+├── README.md                  # This file
+└── TODO.md                    # Development TODO list
 ```
 
 ### Development Workflow
@@ -300,29 +384,40 @@ voice-assistant/
 git checkout -b feature/your-feature
 ```
 
-2. **Make changes**
+2. **Set up your development environment**
 ```bash
-# Backend changes
-cd surfsense_backend
-# Make changes...
-
-# Frontend changes
-cd surfsense_web
-# Make changes...
+# Backend setup with uv sync
+cd SurfSense-main/backend
+uv sync --group dev  # Installs main dependencies + dev dependencies
 ```
 
-3. **Test**
+3. **Make changes**
+```bash
+# Backend changes (use uv for new dependencies)
+cd backend
+# Make changes...
+# For new dependencies: uv add <package>
+# For dev dependencies: uv add --group dev <package>
+
+# Frontend changes (use pnpm for new dependencies)
+cd frontend
+pnpm install
+# Make changes...
+# For new dependencies: pnpm add <package>
+```
+
+4. **Test**
 ```bash
 # Run backend tests
-cd surfsense_backend
-pytest
+cd backend
+uv run pytest
 
 # Run frontend tests
-cd surfsense_web
-npm test
+cd frontend
+pnpm test
 ```
 
-4. **Submit PR**
+5. **Submit PR**
 ```bash
 git add .
 git commit -m "feat: your feature description"
@@ -331,17 +426,95 @@ git push origin feature/your-feature
 
 ---
 
+## 📦 About uv Package Manager
+
+**Why uv?**
+- **Fast**: uv is 10-100x faster than pip
+- **Reliable**: Consistent, reproducible dependency resolution
+- **Modern**: Drop-in replacement for pip with better performance
+- **Python-native**: Written in Rust for optimal speed
+
+**Basic uv commands:**
+```bash
+# Sync dependencies (recommended - creates venv and installs from pyproject.toml)
+uv sync                    # Install main dependencies
+uv sync --group dev        # Install main + dev dependencies
+uv sync --all-groups       # Install all dependency groups
+
+# Run commands in the virtual environment (no activation needed)
+uv run python main.py      # Run Python script
+uv run pytest              # Run tests
+uv run alembic upgrade head  # Run migrations
+
+# Add/remove dependencies (updates pyproject.toml and uv.lock)
+uv add <package>           # Add to main dependencies
+uv add --group dev <package>  # Add to dev dependencies
+uv remove <package>        # Remove dependency
+
+# Legacy pip-compatible commands (if needed)
+uv pip install <package>   # Install package
+uv pip freeze              # List installed packages
+uv pip list                # List packages
+
+# Virtual environment management
+uv venv                    # Create virtual environment manually
+source .venv/bin/activate  # Activate (optional with uv run)
+```
+
+**Recommended workflow:**
+1. Use `uv sync` to install dependencies (replaces `pip install`)
+2. Use `uv run` to execute commands (no need to activate venv)
+3. Use `uv add` to add new dependencies (replaces `pip install` + manual pyproject.toml edit)
+
+---
+
+## 📦 About pnpm Package Manager
+
+**Why pnpm?**
+- **Fast**: pnpm is 3-10x faster than npm with efficient disk usage
+- **Reliable**: Strict dependency resolution prevents bugs
+- **Disk-efficient**: Uses hard links to share dependencies across projects
+- **Workspace-friendly**: Excellent monorepo support
+- **Lock file integrity**: Deterministic and tamper-proof
+
+**Basic pnpm commands:**
+```bash
+# Install dependencies
+pnpm install
+
+# Add a package
+pnpm add <package>
+
+# Add a dev dependency
+pnpm add -D <package>
+
+# Update packages
+pnpm update
+
+# Remove a package
+pnpm remove <package>
+
+# Run scripts from package.json
+pnpm run <script>
+
+# Clean installation
+pnpm install --frozen-lockfile
+```
+
+---
+
 ## 🧪 Testing
 
 ### Unit Tests
 ```bash
-cd surfsense_backend
-pytest tests/unit/
+cd backend
+uv run pytest tests/unit/
 ```
 
 ### Integration Tests
 ```bash
-pytest tests/integration/
+cd backend
+uv run pytest tests/integration/
 ```
 
 ### Accessibility Tests
