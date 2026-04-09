@@ -6,8 +6,8 @@ on:
       - main
       - dev
     paths:
-      - 'surfsense_backend/**'
-      - 'surfsense_web/**'
+      - 'backend/**'
+      - 'frontend/**'
   workflow_dispatch:
     inputs:
       branch:
