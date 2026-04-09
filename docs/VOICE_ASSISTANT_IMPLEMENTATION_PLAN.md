@@ -1,0 +1,831 @@
+# Voice Assistant Implementation Plan
+
+> **Voice-First Research Assistant for Visually Impaired Users**  
+> **Following .kiro skills: TDD, Python Patterns, System Architecture, React Best Practices**  
+> **Date:** 2026-04-09
+
+---
+
+## 🎯 Project Vision
+
+Build a 100% voice-controlled research assistant where visually impaired users can:
+- Search documents by voice
+- Get spoken summaries with citations
+- Take interactive quizzes
+- Access Gmail, Google Drive, and other connected sources
+- **All without touching a screen**
+
+---
+
+## 🏗️ Architecture Decision (System Architecture Skill)
+
+### Chosen Architecture: Well-Structured Monolith
+
+**Why NOT microservices:**
+- Team size: 1-3 developers
+- Shared infrastructure (database, auth, search)
+- Easier debugging at 3am
+- Voice layer is a feature, not a separate service
+
+**Architecture:**
+```
+┌─────────────────────────────────────────────────────────┐
+│              SurfSense Monolith (FastAPI)               │
+│                                                         │
+│  ┌────────────────────────────────────────────────┐   │
+│  │  Voice Feature Layer (NEW)                     │   │
+│  │  - Audio transcription (Faster-Whisper)        │   │
+│  │  - Intent understanding (existing LLM router)  │   │
+│  │  - Voice tools (search, summarize, quiz)       │   │
+│  │  - TTS (Piper)                                 │   │
+│  └────────────────────────────────────────────────┘   │
+│                                                         │
+│  ┌────────────────────────────────────────────────┐   │
+│  │  Existing SurfSense Core (REUSE 100%)          │   │
+│  │  - Search API + RAG pipeline                   │   │
+│  │  - Document processing                         │   │
+│  │  - Auth & user management                      │   │
+│  │  - Database (PostgreSQL + pgvector)            │   │
+│  │  - Connectors (Gmail, Drive, Slack, etc.)     │   │
+│  └────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Key Boundaries:**
+| Boundary | Reason | Change Rate |
+|----------|--------|-------------|
+| Voice layer ↔ Core | Different interface (audio vs HTTP) | Voice: high, Core: stable |
+| Frontend ↔ Backend | Network boundary | Independent deployment |
+
+**Complexity Justification:**
+- ✅ Tried simple solution: Reusing existing SurfSense APIs
+- ✅ Have evidence: Voice needs audio processing (STT/TTS)
+- ✅ Team can operate: Standard FastAPI patterns
+- ✅ Makes sense in 6 months: Clear feature boundary
+
+---
+
+## 🐍 Backend Implementation (Python Patterns Skill)
+
+### Framework Selection
+
+**Chosen: FastAPI (already in SurfSense)**
+
+**Why FastAPI:**
+- ✅ API-first (voice is an API consumer)
+- ✅ Native async support (I/O-bound: audio, database, LLM)
+- ✅ Already in use (consistency)
+- ✅ Pydantic validation (audio file validation)
+
+### Async Strategy
+
+**Use async for:**
+- Audio transcription (I/O-bound: waiting for Whisper)
+- LLM calls (I/O-bound: waiting for inference)
+- Database queries (I/O-bound: waiting for PostgreSQL)
+- Search API calls (I/O-bound: waiting for SurfSense)
+
+**Use sync for:**
+- Audio format conversion (CPU-bound)
+- Audio validation (CPU-bound)
+
+### Type Hints Strategy
+
+```python
+# Always type public APIs
+async def transcribe_audio(
+    audio_data: bytes,
+    language: str = "en"
+) -> TranscriptionResult:
+    """Transcribe audio to text using Faster-Whisper."""
+    ...
+
+# Pydantic for validation
+class VoiceSearchRequest(BaseModel):
+    audio: bytes
+    user_id: UUID
+    session_id: Optional[UUID] = None
+
+class VoiceSearchResponse(BaseModel):
+    transcript: str
+    results: list[SearchResult]
+    audio_response: bytes
+```
+
+### Project Structure
+
+```
+backend/
+├── app/
+│   ├── services/
+│   │   ├── voice/                    # NEW: Voice services
+│   │   │   ├── __init__.py
+│   │   │   ├── transcription.py     # Faster-Whisper
+│   │   │   ├── intent.py            # Intent understanding
+│   │   │   ├── tts.py               # Piper TTS
+│   │   │   └── tools/               # Voice tools
+│   │   │       ├── search.py
+│   │   │       ├── summarize.py
+│   │   │       └── quiz.py
+│   │   └── (existing services)      # REUSE
+│   │
+│   ├── routes/
+│   │   ├── voice_routes.py          # NEW: Voice endpoints
+│   │   └── (existing routes)        # REUSE
+│   │
+│   ├── schemas/
+│   │   ├── voice.py                 # NEW: Voice Pydantic models
+│   │   └── (existing schemas)       # REUSE
+│   │
+│   └── (existing structure)         # REUSE
+│
+└── tests/
+    ├── unit/
+    │   └── voice/                   # NEW: Voice unit tests
+    └── integration/
+        └── voice/                   # NEW: Voice integration tests
+```
+
+---
+
+## ⚛️ Frontend Implementation (React Best Practices Skill)
+
+### Performance Optimization Strategy
+
+**Critical Optimizations (from Vercel best practices):**
+
+1. **Bundle Size** (`bundle-*` rules)
+   - Use `next/dynamic` for VoiceInterface (heavy component)
+   - Defer audio processing libraries until needed
+   - Import directly, avoid barrel files
+
+2. **Re-render Optimization** (`rerender-*` rules)
+   - Memo VoiceRecorder (expensive audio processing)
+   - Use refs for transient audio state
+   - Functional setState for stable callbacks
+
+3. **Rendering Performance** (`rendering-*` rules)
+   - Hoist static JSX (icons, labels)
+   - Use Activity component for show/hide
+   - Suppress hydration warnings for client-only audio
+
+### Component Structure
+
+```tsx
+// Use next/dynamic for heavy components (bundle-dynamic-imports)
+const VoiceInterface = dynamic(
+  () => import('@/components/voice/VoiceInterface'),
+  { ssr: false, loading: () => <VoiceLoading /> }
+);
+
+// Memo expensive components (rerender-memo)
+const VoiceRecorder = memo(function VoiceRecorder({ onRecordingComplete }) {
+  // Use refs for transient values (rerender-use-ref-transient-values)
+  const audioChunksRef = useRef<Blob[]>([]);
+  
+  // Functional setState for stable callbacks (rerender-functional-setstate)
+  const [isRecording, setIsRecording] = useState(false);
+  const startRecording = useCallback(() => {
+    setIsRecording(prev => !prev);
+  }, []);
+  
+  // ... implementation
+});
+
+// Hoist static JSX (rendering-hoist-jsx)
+const MICROPHONE_ICON = <Mic className="size-6" />;
+
+function VoiceControls() {
+  return (
+    <Button>
+      {MICROPHONE_ICON}
+      Start Recording
+    </Button>
+  );
+}
+```
+
+### State Management
+
+```typescript
+// atoms/voice/voice-session.atom.ts
+export const voiceSessionAtom = atom<VoiceSession | null>(null);
+
+// Derived state during render (rerender-derived-state-no-effect)
+export const isRecordingAtom = atom(
+  (get) => get(voiceSessionAtom)?.status === 'recording'
+);
+
+// Don't subscribe to state only used in callbacks (rerender-defer-reads)
+function VoiceInterface() {
+  const session = useAtomValue(voiceSessionAtom);
+  
+  // BAD: Subscribes to entire session
+  // const handleStop = () => stopRecording(session.id);
+  
+  // GOOD: Read session only when needed
+  const handleStop = useCallback(() => {
+    const currentSession = voiceSessionAtom.read();
+    stopRecording(currentSession.id);
+  }, []);
+}
+```
+
+---
+
+## 🧪 TDD Implementation (TDD Skill)
+
+### Workflow: Red-Green-Refactor
+
+**CRITICAL: Vertical slicing, NOT horizontal**
+
+```
+❌ WRONG (horizontal):
+  Write all tests → Write all implementation
+
+✅ RIGHT (vertical - tracer bullets):
+  Test 1 → Impl 1 → Test 2 → Impl 2 → Test 3 → Impl 3
+```
+
+### Phase 1: Backend Voice Service (Week 1-2)
+
+#### Day 1-2: Audio Transcription Service
+
+**Planning:**
+- [ ] Confirm interface: `transcribe_audio(audio_data: bytes) -> str`
+- [ ] Confirm behaviors to test:
+  1. Transcribe clear audio
+  2. Handle empty audio
+  3. Handle corrupted audio
+  4. Performance <500ms
+
+**Tracer Bullet (Test 1):**
+```python
+# tests/unit/voice/test_transcription.py
+
+def test_transcribe_clear_audio():
+    """RED: Test transcribing clear audio."""
+    # Arrange
+    audio_data = load_test_audio("clear_speech.wav")
+    service = TranscriptionService()
+    
+    # Act
+    result = service.transcribe(audio_data)
+    
+    # Assert
+    assert result.text == "search my notes for photosynthesis"
+    assert result.confidence > 0.9
+```
+
+**Implementation (GREEN):**
+```python
+# app/services/voice/transcription.py
+
+from faster_whisper import WhisperModel
+from pydantic import BaseModel
+
+class TranscriptionResult(BaseModel):
+    text: str
+    confidence: float
+
+class TranscriptionService:
+    def __init__(self):
+        self.model = WhisperModel("base", device="cpu")
+    
+    def transcribe(self, audio_data: bytes) -> TranscriptionResult:
+        # Minimal code to pass test
+        segments, info = self.model.transcribe(audio_data)
+        text = " ".join([seg.text for seg in segments])
+        confidence = info.language_probability
+        return TranscriptionResult(text=text, confidence=confidence)
+```
+
+**Incremental Loop (Tests 2-4):**
+```python
+# RED: Test 2
+def test_transcribe_empty_audio():
+    """Handle empty audio gracefully."""
+    service = TranscriptionService()
+    with pytest.raises(ValueError, match="Audio data is empty"):
+        service.transcribe(b"")
+
+# GREEN: Add validation
+def transcribe(self, audio_data: bytes) -> TranscriptionResult:
+    if not audio_data:
+        raise ValueError("Audio data is empty")
+    # ... rest of implementation
+
+# RED: Test 3
+def test_transcribe_corrupted_audio():
+    """Handle corrupted audio gracefully."""
+    service = TranscriptionService()
+    with pytest.raises(AudioProcessingError):
+        service.transcribe(b"corrupted data")
+
+# GREEN: Add error handling
+def transcribe(self, audio_data: bytes) -> TranscriptionResult:
+    if not audio_data:
+        raise ValueError("Audio data is empty")
+    try:
+        segments, info = self.model.transcribe(audio_data)
+        # ... rest
+    except Exception as e:
+        raise AudioProcessingError(f"Failed to transcribe: {e}")
+
+# RED: Test 4
+def test_transcribe_performance():
+    """Transcription completes in <500ms."""
+    audio_data = load_test_audio("clear_speech.wav")
+    service = TranscriptionService()
+    
+    start = time.time()
+    service.transcribe(audio_data)
+    duration = time.time() - start
+    
+    assert duration < 0.5, f"Took {duration}s, expected <0.5s"
+
+# GREEN: Optimize (if needed)
+# - Use smaller model
+# - Enable GPU
+# - Cache model loading
+```
+
+**Refactor:**
+```python
+# Extract model loading
+class TranscriptionService:
+    _model: Optional[WhisperModel] = None
+    
+    @classmethod
+    def get_model(cls) -> WhisperModel:
+        if cls._model is None:
+            cls._model = WhisperModel("base", device="cpu")
+        return cls._model
+    
+    def transcribe(self, audio_data: bytes) -> TranscriptionResult:
+        # Validation
+        if not audio_data:
+            raise ValueError("Audio data is empty")
+        
+        # Transcription
+        try:
+            model = self.get_model()
+            segments, info = model.transcribe(audio_data)
+            text = " ".join([seg.text for seg in segments])
+            confidence = info.language_probability
+            return TranscriptionResult(text=text, confidence=confidence)
+        except Exception as e:
+            raise AudioProcessingError(f"Failed to transcribe: {e}")
+```
+
+**Checklist:**
+- [x] Test describes behavior (transcribe audio)
+- [x] Test uses public interface (transcribe method)
+- [x] Test would survive refactor (doesn't test internals)
+- [x] Code is minimal for tests
+- [x] No speculative features
+
+---
+
+#### Day 3-5: Intent Understanding Service
+
+**Planning:**
+- [ ] Confirm interface: `understand_intent(text: str, context: dict) -> Intent`
+- [ ] Confirm behaviors:
+  1. Recognize search intent
+  2. Recognize summarize intent
+  3. Recognize quiz intent
+  4. Extract parameters
+  5. Handle ambiguous input
+
+**Tracer Bullet:**
+```python
+# tests/unit/voice/test_intent.py
+
+def test_recognize_search_intent():
+    """RED: Recognize search intent from text."""
+    service = IntentService()
+    
+    result = service.understand("search my notes for photosynthesis")
+    
+    assert result.intent_type == IntentType.SEARCH
+    assert result.parameters["query"] == "photosynthesis"
+    assert result.parameters["filters"] == {"type": "notes"}
+```
+
+**Implementation:**
+```python
+# app/services/voice/intent.py
+
+from enum import Enum
+from pydantic import BaseModel
+
+class IntentType(str, Enum):
+    SEARCH = "search"
+    SUMMARIZE = "summarize"
+    QUIZ = "quiz"
+    FOLLOW_UP = "follow_up"
+
+class Intent(BaseModel):
+    intent_type: IntentType
+    parameters: dict
+    confidence: float
+
+class IntentService:
+    def __init__(self):
+        # Use existing LLM router from SurfSense
+        from app.services.llm_router_service import get_llm_router
+        self.llm = get_llm_router()
+    
+    def understand(self, text: str, context: dict = None) -> Intent:
+        # Use LLM with structured output
+        prompt = self._build_prompt(text, context)
+        response = self.llm.chat(prompt, response_format="json")
+        
+        # Parse response
+        data = json.loads(response)
+        return Intent(
+            intent_type=IntentType(data["intent"]),
+            parameters=data["parameters"],
+            confidence=data["confidence"]
+        )
+    
+    def _build_prompt(self, text: str, context: dict = None) -> str:
+        return f"""
+        Analyze this voice command and extract the intent and parameters.
+        
+        Command: {text}
+        Context: {context or {}}
+        
+        Return JSON:
+        {{
+          "intent": "search|summarize|quiz|follow_up",
+          "parameters": {{}},
+          "confidence": 0.0-1.0
+        }}
+        """
+```
+
+**Continue with Tests 2-5...**
+
+---
+
+#### Day 6-8: Search Tool Handler
+
+**Planning:**
+- [ ] Confirm interface: `handle_search(query: str, filters: dict, user_id: UUID) -> SearchResult`
+- [ ] Confirm behaviors:
+  1. Call SurfSense search API
+  2. Format results for voice
+  3. Include citations
+  4. Handle no results
+  5. Handle API errors
+
+**Tracer Bullet:**
+```python
+# tests/unit/voice/test_search_tool.py
+
+@pytest.mark.asyncio
+async def test_search_documents():
+    """RED: Search documents via SurfSense API."""
+    tool = SearchTool()
+    
+    result = await tool.handle_search(
+        query="photosynthesis",
+        filters={"type": "notes"},
+        user_id=UUID("...")
+    )
+    
+    assert len(result.chunks) > 0
+    assert "photosynthesis" in result.chunks[0].content.lower()
+    assert result.chunks[0].source is not None
+```
+
+**Implementation:**
+```python
+# app/services/voice/tools/search.py
+
+from app.retriever.chunks_hybrid_search import search_chunks  # REUSE existing!
+
+class SearchTool:
+    async def handle_search(
+        self,
+        query: str,
+        filters: dict,
+        user_id: UUID
+    ) -> SearchResult:
+        # Call existing SurfSense search
+        chunks = await search_chunks(
+            query=query,
+            user_id=user_id,
+            filters=filters,
+            limit=5
+        )
+        
+        # Format for voice
+        formatted = self._format_for_voice(chunks)
+        
+        return SearchResult(
+            chunks=chunks,
+            voice_response=formatted
+        )
+    
+    def _format_for_voice(self, chunks: list) -> str:
+        if not chunks:
+            return "I didn't find any documents matching that search."
+        
+        # Natural language formatting
+        response = f"I found {len(chunks)} results. "
+        
+        for i, chunk in enumerate(chunks[:3], 1):
+            source = chunk.document.title
+            date = chunk.document.created_at.strftime("%B %d")
+            response += f"From your {source} on {date}: {chunk.content[:200]}... "
+        
+        return response
+```
+
+---
+
+#### Day 9-10: Voice Route (End-to-End)
+
+**Planning:**
+- [ ] Confirm interface: `POST /api/voice/search` with audio file
+- [ ] Confirm behaviors:
+  1. Accept audio upload
+  2. Transcribe → Understand → Search → Format → TTS
+  3. Return audio response
+  4. Require authentication
+  5. Rate limiting
+
+**Tracer Bullet:**
+```python
+# tests/integration/voice/test_voice_routes.py
+
+@pytest.mark.asyncio
+async def test_voice_search_end_to_end(client, auth_headers):
+    """RED: Complete voice search flow."""
+    # Arrange
+    audio_file = load_test_audio("search_photosynthesis.wav")
+    
+    # Act
+    response = await client.post(
+        "/api/voice/search",
+        files={"audio": audio_file},
+        headers=auth_headers
+    )
+    
+    # Assert
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "audio/wav"
+    assert len(response.content) > 0  # Has audio response
+```
+
+**Implementation:**
+```python
+# app/routes/voice_routes.py
+
+from fastapi import APIRouter, UploadFile, Depends
+from app.users import current_active_user
+from app.services.voice.transcription import TranscriptionService
+from app.services.voice.intent import IntentService
+from app.services.voice.tools.search import SearchTool
+from app.services.voice.tts import TTSService
+
+router = APIRouter(prefix="/api/voice", tags=["voice"])
+
+@router.post("/search")
+async def voice_search(
+    audio: UploadFile,
+    user = Depends(current_active_user)
+):
+    # 1. Transcribe
+    audio_data = await audio.read()
+    transcription = TranscriptionService().transcribe(audio_data)
+    
+    # 2. Understand intent
+    intent = IntentService().understand(transcription.text)
+    
+    # 3. Execute search
+    search_tool = SearchTool()
+    result = await search_tool.handle_search(
+        query=intent.parameters["query"],
+        filters=intent.parameters.get("filters", {}),
+        user_id=user.id
+    )
+    
+    # 4. Generate TTS
+    tts = TTSService()
+    audio_response = tts.synthesize(result.voice_response)
+    
+    # 5. Return audio
+    return Response(
+        content=audio_response,
+        media_type="audio/wav"
+    )
+```
+
+---
+
+### Phase 2: Frontend Voice Interface (Week 3-4)
+
+#### Day 11-12: State Management
+
+**Planning:**
+- [ ] Confirm atoms needed:
+  - voiceSessionAtom
+  - voiceConversationAtom
+  - voiceSettingsAtom
+  - voiceUIAtom
+
+**Tracer Bullet:**
+```typescript
+// tests/atoms/voice/voice-session.test.ts
+
+describe('voiceSessionAtom', () => {
+  it('starts with null session', () => {
+    // RED
+    const session = voiceSessionAtom.read();
+    expect(session).toBeNull();
+  });
+  
+  it('creates new session', () => {
+    // RED
+    const newSession = createVoiceSession(userId);
+    voiceSessionAtom.write(newSession);
+    
+    const session = voiceSessionAtom.read();
+    expect(session).not.toBeNull();
+    expect(session.userId).toBe(userId);
+  });
+});
+```
+
+**Implementation:**
+```typescript
+// atoms/voice/voice-session.atom.ts
+
+import { atom } from 'jotai';
+
+export interface VoiceSession {
+  id: string;
+  userId: string;
+  status: 'idle' | 'recording' | 'processing' | 'playing';
+  startedAt: Date;
+}
+
+export const voiceSessionAtom = atom<VoiceSession | null>(null);
+
+// Derived atoms (rerender-derived-state)
+export const isRecordingAtom = atom(
+  (get) => get(voiceSessionAtom)?.status === 'recording'
+);
+
+export const isProcessingAtom = atom(
+  (get) => get(voiceSessionAtom)?.status === 'processing'
+);
+```
+
+---
+
+#### Day 13-16: VoiceRecorder Component
+
+**Planning:**
+- [ ] Confirm interface: `<VoiceRecorder onRecordingComplete={(audio) => ...} />`
+- [ ] Confirm behaviors:
+  1. Request microphone permission
+  2. Start/stop recording
+  3. Visual feedback
+  4. Error handling
+
+**Tracer Bullet:**
+```typescript
+// tests/components/voice/VoiceRecorder.test.tsx
+
+describe('VoiceRecorder', () => {
+  it('requests microphone permission on mount', async () => {
+    // RED
+    const mockGetUserMedia = vi.fn();
+    global.navigator.mediaDevices.getUserMedia = mockGetUserMedia;
+    
+    render(<VoiceRecorder onRecordingComplete={vi.fn()} />);
+    
+    await waitFor(() => {
+      expect(mockGetUserMedia).toHaveBeenCalledWith({ audio: true });
+    });
+  });
+});
+```
+
+**Implementation:**
+```typescript
+// components/voice/VoiceRecorder.tsx
+
+import { memo, useCallback, useRef } from 'react';
+import { Button } from '@/components/ui/button';
+
+// Memo expensive component (rerender-memo)
+export const VoiceRecorder = memo(function VoiceRecorder({
+  onRecordingComplete
+}: {
+  onRecordingComplete: (audio: Blob) => void;
+}) {
+  // Use refs for transient values (rerender-use-ref-transient-values)
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  
+  // Functional setState (rerender-functional-setstate)
+  const [isRecording, setIsRecording] = useState(false);
+  
+  // Request permission on mount
+  useEffect(() => {
+    navigator.mediaDevices.getUserMedia({ audio: true })
+      .then(stream => {
+        mediaRecorderRef.current = new MediaRecorder(stream);
+        // Setup event handlers...
+      })
+      .catch(error => {
+        console.error('Microphone permission denied:', error);
+      });
+  }, []);
+  
+  const startRecording = useCallback(() => {
+    setIsRecording(true);
+    audioChunksRef.current = [];
+    mediaRecorderRef.current?.start();
+  }, []);
+  
+  const stopRecording = useCallback(() => {
+    setIsRecording(false);
+    mediaRecorderRef.current?.stop();
+  }, []);
+  
+  return (
+    <div>
+      <Button onClick={isRecording ? stopRecording : startRecording}>
+        {isRecording ? 'Stop' : 'Start'} Recording
+      </Button>
+    </div>
+  );
+});
+```
+
+---
+
+## 📋 Implementation Checklist
+
+### Week 1-2: Backend Core
+- [ ] Day 1-2: Audio Transcription Service (TDD)
+- [ ] Day 3-5: Intent Understanding Service (TDD)
+- [ ] Day 6-8: Search Tool Handler (TDD)
+- [ ] Day 9-10: Voice Route End-to-End (TDD)
+
+### Week 3-4: Frontend Core
+- [ ] Day 11-12: State Management (atoms)
+- [ ] Day 13-16: VoiceRecorder Component (TDD)
+- [ ] Day 17-18: Voice API Client
+- [ ] Day 19-22: VoiceInterface Component
+- [ ] Day 23-24: Supporting Components
+- [ ] Day 25: Voice Page Route
+
+### Week 5-6: WebRTC (Optional - for lower latency)
+- [ ] Day 26-28: WebRTC Manager
+- [ ] Day 29-30: use-webrtc Hook
+- [ ] Day 31-36: Backend WebRTC Support
+
+### Week 7-8: Advanced Features
+- [ ] Day 37-42: Quiz Mode
+- [ ] Day 43-44: Settings & Onboarding
+- [ ] Day 45-46: Accessibility & Performance
+- [ ] Day 47-48: Testing & Documentation
+
+---
+
+## 🎯 Success Criteria
+
+### Technical
+- [ ] End-to-end latency <2.5s
+- [ ] STT accuracy >95%
+- [ ] Test coverage >80% (backend), >70% (frontend)
+- [ ] Bundle size <500KB
+- [ ] Accessibility audit 100% pass
+
+### User Experience
+- [ ] 100% screen-free operation
+- [ ] Natural conversation flow
+- [ ] Clear audio feedback
+- [ ] Error recovery <3 attempts
+
+---
+
+## 🚀 Next Steps
+
+1. **Review this plan** - Confirm approach
+2. **Set up environment** - Install dependencies
+3. **Start Day 1** - Audio Transcription Service (TDD)
+4. **Follow vertical slicing** - One test → one implementation
+5. **Review weekly** - Adjust as needed
+
+---
+
+**Remember:** We're building independence for visually impaired users. Follow TDD, keep it simple, and build it right. 🚀
