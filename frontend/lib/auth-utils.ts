@@ -81,10 +81,19 @@ export function getAndClearRedirectPath(): string | null {
 
 /**
  * Gets the bearer token from localStorage
+ * 
+ * TEMPORARY: Auth disabled for development
+ * Returns a dummy token to bypass auth checks
  */
 export function getBearerToken(): string | null {
 	if (typeof window === "undefined") return null;
-	return localStorage.getItem(BEARER_TOKEN_KEY);
+	
+	// TEMPORARY: Return dummy token to bypass auth
+	// TODO: Re-enable auth by removing this line
+	return "dev-bypass-token";
+	
+	// Original implementation (commented out):
+	// return localStorage.getItem(BEARER_TOKEN_KEY);
 }
 
 /**
@@ -210,9 +219,17 @@ export async function logout(): Promise<boolean> {
 
 /**
  * Checks if the user is authenticated (has a token)
+ * 
+ * TEMPORARY: Auth disabled for development
+ * Always returns true to bypass auth checks
  */
 export function isAuthenticated(): boolean {
-	return !!getBearerToken();
+	// TEMPORARY: Always return true to bypass auth
+	// TODO: Re-enable auth by removing this line
+	return true;
+	
+	// Original implementation (commented out):
+	// return !!getBearerToken();
 }
 
 /**

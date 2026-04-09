@@ -11,9 +11,12 @@ interface DashboardLayoutProps {
 }
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
+	// TEMPORARY: Auth disabled for development
+	// Skip auth check and go directly to dashboard
+	
+	// Original auth check (commented out):
+	/*
 	const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-
-	// Use the global loading screen - spinner animation won't reset
 	useGlobalLoadingEffect(isCheckingAuth);
 
 	useEffect(() => {
@@ -33,10 +36,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 		checkAuth();
 	}, []);
 
-	// Return null while loading - the global provider handles the loading UI
 	if (isCheckingAuth) {
 		return null;
 	}
+	*/
 
 	return (
 		<div className="h-full flex flex-col ">

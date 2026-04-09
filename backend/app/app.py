@@ -388,11 +388,41 @@ app.include_router(
     prefix="/auth",
     tags=["auth"],
 )
-app.include_router(
-    fastapi_users.get_users_router(UserRead, UserUpdate),
-    prefix="/users",
-    tags=["users"],
-)
+
+# TEMPORARY: Disable the default users router and create a custom one without auth
+# app.include_router(
+#     fastapi_users.get_users_router(UserRead, UserUpdate),
+#     prefix="/users",
+#     tags=["users"],
+# )
+
+# TEMPORARY: Custom /users/me endpoint without authentication
+from fastapi import APIRouter
+from app.users import _get_mock_user
+
+users_router_no_auth = APIRouter(prefix="/users", tags=["users"])
+
+@users_router_no_auth.get("/me")
+async def get_current_user_no_auth():
+    """
+    TEMPORARY: Returns mock user without authentication.
+    TODO: Re-enable auth by uncommenting the original router above and removing this.
+    """
+    user = await _get_mock_user()
+    # Return as dict with all required fields to bypass validation
+    return {
+        "id": str(user.id),
+        "email": user.email if "@" in user.email and "." in user.email.split("@")[1] else "dev@example.com",
+        "is_active": user.is_active,
+        "is_superuser": user.is_superuser,
+        "is_verified": user.is_verified,
+        "display_name": user.display_name or "Dev User",
+        "avatar_url": user.avatar_url,
+        "pages_limit": user.pages_limit if hasattr(user, 'pages_limit') and user.pages_limit is not None else 1000,
+        "pages_used": user.pages_used if hasattr(user, 'pages_used') and user.pages_used is not None else 0,
+    }
+
+app.include_router(users_router_no_auth)
 
 # Include custom auth routes (refresh token, logout)
 app.include_router(auth_router)
