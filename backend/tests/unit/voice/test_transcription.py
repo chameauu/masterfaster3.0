@@ -63,6 +63,45 @@ class TestTranscriptionService:
         assert result.language == "en"
         assert result.duration == 1.5
     
+    @patch("app.services.voice.transcription.WhisperModel")
+    def test_transcribe_empty_audio(self, mock_whisper_model):
+        """
+        Test handling empty audio gracefully.
+        
+        Behavior: Given empty audio data, the service should raise
+        a clear error message, not crash.
+        """
+        # Arrange
+        service = TranscriptionService()
+        empty_audio = b""
+        
+        # Act & Assert
+        with pytest.raises(ValueError, match="Audio data is empty"):
+            service.transcribe(empty_audio)
+    
+    @patch("app.services.voice.transcription.WhisperModel")
+    def test_transcribe_corrupted_audio(self, mock_whisper_model):
+        """
+        Test handling corrupted audio gracefully.
+        
+        Behavior: Given corrupted audio data, the service should raise
+        AudioProcessingError with a helpful message.
+        """
+        # Arrange - Mock the model to raise an exception
+        mock_model_instance = MagicMock()
+        mock_whisper_model.return_value = mock_model_instance
+        mock_model_instance.transcribe.side_effect = Exception("Invalid audio format")
+        
+        # Reset the cached model to force using our mock
+        TranscriptionService._model = None
+        
+        service = TranscriptionService()
+        corrupted_audio = b"not a valid wav file"
+        
+        # Act & Assert
+        with pytest.raises(AudioProcessingError, match="Failed to transcribe audio"):
+            service.transcribe(corrupted_audio)
+    
     def _create_test_audio(self) -> bytes:
         """
         Helper to create minimal test audio data.

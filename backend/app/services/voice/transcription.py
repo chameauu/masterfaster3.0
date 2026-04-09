@@ -63,8 +63,13 @@ class TranscriptionService:
             TranscriptionResult with text, confidence, and language
         
         Raises:
+            ValueError: If audio data is empty
             AudioProcessingError: If transcription fails
         """
+        # Validation
+        if not audio_data:
+            raise ValueError("Audio data is empty")
+        
         # Get the model
         model = self.get_model()
         
