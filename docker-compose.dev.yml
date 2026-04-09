@@ -12,6 +12,8 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./postgresql.conf:/etc/postgresql/postgresql.conf:ro
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U surfsense -d surfsense"]
       interval: 10s
@@ -48,6 +50,38 @@ services:
       timeout: 5s
       retries: 5
 
+  zero-cache:
+    image: rocicorp/zero:0.26.2
+    container_name: surfsense-zero-cache
+    ports:
+      - "4848:4848"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      ZERO_UPSTREAM_DB: postgresql://surfsense:surfsense@postgres:5432/surfsense?sslmode=disable
+      ZERO_CVR_DB: postgresql://surfsense:surfsense@postgres:5432/surfsense?sslmode=disable
+      ZERO_CHANGE_DB: postgresql://surfsense:surfsense@postgres:5432/surfsense?sslmode=disable
+      ZERO_REPLICA_FILE: /data/zero.db
+      ZERO_ADMIN_PASSWORD: ${ZERO_ADMIN_PASSWORD:-surfsense-zero-admin}
+      ZERO_APP_PUBLICATIONS: ${ZERO_APP_PUBLICATIONS:-zero_publication}
+      ZERO_NUM_SYNC_WORKERS: ${ZERO_NUM_SYNC_WORKERS:-4}
+      ZERO_UPSTREAM_MAX_CONNS: ${ZERO_UPSTREAM_MAX_CONNS:-20}
+      ZERO_CVR_MAX_CONNS: ${ZERO_CVR_MAX_CONNS:-30}
+      ZERO_QUERY_URL: http://host.docker.internal:3000/api/zero/query
+      ZERO_MUTATE_URL: http://host.docker.internal:3000/api/zero/mutate
+    volumes:
+      - zero_cache_data:/data
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4848/keepalive"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   postgres_data:
   redis_data:
+  zero_cache_data:
