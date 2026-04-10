@@ -41,6 +41,7 @@ dependencies = [
     "youtube-transcript-api>=1.0.3",
     "elasticsearch>=9.1.1",
     "faster-whisper>=1.1.0",
+    "pipecat-ai[piper,silero,webrtc]>=0.0.108",
     "celery[redis]>=5.5.3",
     "flower>=2.0.1",
     "redis>=5.2.1",

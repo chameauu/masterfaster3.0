@@ -36,6 +36,7 @@ from .notes_routes import router as notes_router
 from .notifications_routes import router as notifications_router
 from .notion_add_connector_route import router as notion_add_connector_router
 from .onedrive_add_connector_route import router as onedrive_add_connector_router
+from .pipecat_routes import router as pipecat_router
 from .podcasts_routes import router as podcasts_router
 from .prompts_routes import router as prompts_router
 from .public_chat_routes import router as public_chat_router
@@ -101,3 +102,4 @@ router.include_router(youtube_router)  # YouTube playlist resolution
 router.include_router(prompts_router)
 router.include_router(autocomplete_router)  # Lightweight autocomplete with KB context
 router.include_router(voice_router)  # Voice assistant for accessibility
+router.include_router(pipecat_router)  # Pipecat WebRTC voice streaming (new implementation)
