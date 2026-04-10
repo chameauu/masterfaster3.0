@@ -28,7 +28,7 @@ jobs:
         with:
           filters: |
             backend:
-              - 'surfsense_backend/**'
+              - 'backend/**'
 
       - name: Set up Python
         if: steps.backend-changes.outputs.backend == 'true'
@@ -100,7 +100,7 @@ jobs:
         with:
           filters: |
             backend:
-              - 'surfsense_backend/**'
+              - 'backend/**'
 
       - name: Set up Python
         if: steps.backend-changes.outputs.backend == 'true'

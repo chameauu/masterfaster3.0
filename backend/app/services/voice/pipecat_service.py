@@ -53,6 +53,9 @@ from pipecat.processors.aggregators.llm_response_universal import (
     LLMUserAggregatorParams,
 )
 
+# TTS
+from pipecat.services.piper.tts import PiperTTSService
+
 from .pipecat_config import PipecatServiceConfig
 from .transcription_processor import TranscriptionProcessor
 
@@ -116,6 +119,9 @@ class PipecatService:
         # Transcription (Day 7)
         self.transcription_processor: Optional[TranscriptionProcessor] = None
         
+        # TTS (Day 9)
+        self.tts: Optional[PiperTTSService] = None
+        
         logger.info(
             "Initialized PipecatService with config: "
             f"audio_in={self.config.websocket.audio_in_enabled}, "
@@ -168,6 +174,10 @@ class PipecatService:
             # Create transcription processor (Day 7)
             self.transcription_processor = self._create_transcription_processor()
             logger.debug("Transcription processor created")
+            
+            # Create TTS (Day 9)
+            self.tts = self._create_tts()
+            logger.debug("TTS created")
             
             # Create pipeline
             self.pipeline = self._create_pipeline()
@@ -375,20 +385,56 @@ class PipecatService:
             logger.error(f"Failed to create transcription processor: {e}", exc_info=True)
             raise PipecatPipelineError(f"Transcription processor initialization failed: {e}") from e
     
+    def _create_tts(self) -> PiperTTSService:
+        """
+        Create Piper TTS service for text-to-speech.
+        
+        Piper TTS provides high-quality, local text-to-speech synthesis.
+        Voice model is configured via PipecatPipelineConfig.
+        
+        Available voices:
+        - en_US-ryan-high: High-quality male voice (default)
+        - en_US-lessac-medium: Medium-quality male voice
+        - en_GB-*: British English voices
+        - Many more at: https://huggingface.co/rhasspy/piper-voices
+        
+        Returns:
+            Configured PiperTTSService
+            
+        Raises:
+            PipecatPipelineError: If TTS initialization fails
+            
+        Example:
+            >>> service = PipecatService()
+            >>> tts = service._create_tts()
+            >>> # TTS ready to convert text to speech
+        """
+        try:
+            tts = PiperTTSService(
+                settings=PiperTTSService.Settings(
+                    voice=self.config.pipeline.tts_voice,
+                ),
+            )
+            logger.debug(f"Created Piper TTS with voice={self.config.pipeline.tts_voice}")
+            return tts
+        except Exception as e:
+            logger.error(f"Failed to create TTS: {e}", exc_info=True)
+            raise PipecatPipelineError(f"TTS initialization failed: {e}") from e
+    
     def _create_pipeline(self) -> Pipeline:
         """
         Create Pipecat audio processing pipeline.
         
-        Current implementation (Day 7): Pipeline with VAD and Transcription
+        Current implementation (Day 9): Pipeline with VAD, Transcription, and TTS
         - Receives audio from WebSocket
         - User aggregator with VAD detects speech
         - Transcription processor converts speech to text
-        - Sends transcript back to WebSocket (for now)
+        - TTS converts text to speech
+        - Sends audio back to WebSocket
         - Assistant aggregator manages responses
         
         Future iterations will add:
-        - LLM (existing chat agent) - Day 7-8
-        - TTS (Piper) - Day 9-10
+        - LLM (existing chat agent) - Day 9-10
         
         Returns:
             Configured Pipeline
@@ -402,13 +448,16 @@ class PipecatService:
             raise PipecatPipelineError("Aggregators must be initialized before creating pipeline")
         if not self.transcription_processor:
             raise PipecatPipelineError("Transcription processor must be initialized before creating pipeline")
+        if not self.tts:
+            raise PipecatPipelineError("TTS must be initialized before creating pipeline")
         
-        # Pipeline with VAD and Transcription (Day 7)
+        # Pipeline with VAD, Transcription, and TTS (Day 9)
         return Pipeline([
             self.transport.input(),           # Receive audio from WebSocket
             self.user_aggregator,             # Aggregate user speech with VAD
-            self.transcription_processor,     # ← NEW: Convert speech to text
-            self.transport.output(),          # Send transcript back (for now)
+            self.transcription_processor,     # Convert speech to text
+            self.tts,                         # ← NEW: Convert text to speech
+            self.transport.output(),          # Send audio back
             self.assistant_aggregator,        # Aggregate assistant responses
         ])
     
@@ -460,6 +509,10 @@ class PipecatService:
         if self.user_aggregator:
             logger.debug("Cleaning up user aggregator")
             self.user_aggregator = None
+        
+        if self.tts:
+            logger.debug("Cleaning up TTS")
+            self.tts = None
         
         if self.transcription_processor:
             logger.debug("Cleaning up transcription processor")

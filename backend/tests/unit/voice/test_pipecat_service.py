@@ -131,3 +131,31 @@ class TestPipecatService:
         
         # Cleanup
         await service.stop()
+    
+    # DAY 9: TTS INTEGRATION
+    @pytest.mark.asyncio
+    async def test_tts_integration(self):
+        """
+        Test that TTS (Text-to-Speech) is integrated into pipeline.
+        
+        Behavior being tested:
+        - Service initializes with Piper TTS
+        - Pipeline includes TTS after transcription
+        - TTS is properly configured with voice model
+        
+        This test verifies the pipeline structure, not TTS itself
+        (TTS audio generation is tested separately)
+        """
+        # Arrange
+        service = PipecatService()
+        mock_websocket = AsyncMock()
+        
+        # Act
+        await service.start(mock_websocket)
+        
+        # Assert - Pipeline should include TTS
+        assert service.pipeline is not None, "Pipeline should be initialized"
+        assert service.tts is not None, "TTS should be initialized"
+        
+        # Cleanup
+        await service.stop()

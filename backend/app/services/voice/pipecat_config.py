@@ -47,6 +47,9 @@ class PipecatPipelineConfig:
     # LLM context configuration
     system_prompt: str = DEFAULT_SYSTEM_PROMPT
     
+    # TTS configuration (Day 10)
+    tts_voice: str = "en_US-ryan-high"
+    
     def __post_init__(self):
         """Validate configuration."""
         if not 0.0 <= self.vad_confidence <= 1.0:
@@ -59,6 +62,8 @@ class PipecatPipelineConfig:
             raise ValueError("vad_min_volume must be between 0.0 and 1.0")
         if not self.system_prompt or not self.system_prompt.strip():
             raise ValueError("system_prompt must not be empty")
+        if not self.tts_voice or not self.tts_voice.strip():
+            raise ValueError("tts_voice must not be empty")
 
 
 @dataclass

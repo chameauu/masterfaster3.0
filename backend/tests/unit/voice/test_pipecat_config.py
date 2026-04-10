@@ -56,6 +56,7 @@ class TestPipecatPipelineConfig:
         assert config.vad_stop_secs == 0.2
         assert config.vad_min_volume == 0.6
         assert config.system_prompt == DEFAULT_SYSTEM_PROMPT
+        assert config.tts_voice == "en_US-ryan-high"
     
     def test_custom_config(self):
         """Test custom pipeline configuration."""
@@ -65,11 +66,13 @@ class TestPipecatPipelineConfig:
             vad_confidence=0.8,
             vad_start_secs=0.3,
             system_prompt=custom_prompt,
+            tts_voice="en_GB-alba-medium",
         )
         assert config.enable_metrics is False
         assert config.vad_confidence == 0.8
         assert config.vad_start_secs == 0.3
         assert config.system_prompt == custom_prompt
+        assert config.tts_voice == "en_GB-alba-medium"
     
     def test_validation_vad_confidence_range(self):
         """Test VAD confidence must be between 0.0 and 1.0."""
@@ -102,6 +105,14 @@ class TestPipecatPipelineConfig:
         
         with pytest.raises(ValueError, match="system_prompt must not be empty"):
             PipecatPipelineConfig(system_prompt="   ")
+    
+    def test_validation_tts_voice_not_empty(self):
+        """Test TTS voice must not be empty."""
+        with pytest.raises(ValueError, match="tts_voice must not be empty"):
+            PipecatPipelineConfig(tts_voice="")
+        
+        with pytest.raises(ValueError, match="tts_voice must not be empty"):
+            PipecatPipelineConfig(tts_voice="   ")
 
 
 class TestPipecatServiceConfig:
