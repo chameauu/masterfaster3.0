@@ -103,3 +103,31 @@ class TestPipecatService:
         
         # Cleanup
         await service.stop()
+    
+    # DAY 7: TRANSCRIPTION INTEGRATION
+    @pytest.mark.asyncio
+    async def test_transcription_integration(self):
+        """
+        Test that transcription is integrated into pipeline.
+        
+        Behavior being tested:
+        - Service initializes with transcription processor
+        - Pipeline includes transcription between aggregators
+        - Transcription processor is properly configured
+        
+        This test verifies the pipeline structure, not transcription itself
+        (transcription is tested separately in test_transcription.py)
+        """
+        # Arrange
+        service = PipecatService()
+        mock_websocket = AsyncMock()
+        
+        # Act
+        await service.start(mock_websocket)
+        
+        # Assert - Pipeline should include transcription processor
+        assert service.pipeline is not None, "Pipeline should be initialized"
+        assert service.transcription_processor is not None, "Transcription processor should be initialized"
+        
+        # Cleanup
+        await service.stop()

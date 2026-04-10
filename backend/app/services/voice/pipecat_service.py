@@ -54,6 +54,7 @@ from pipecat.processors.aggregators.llm_response_universal import (
 )
 
 from .pipecat_config import PipecatServiceConfig
+from .transcription_processor import TranscriptionProcessor
 
 logger = logging.getLogger(__name__)
 
@@ -112,6 +113,9 @@ class PipecatService:
         self.user_aggregator = None
         self.assistant_aggregator = None
         
+        # Transcription (Day 7)
+        self.transcription_processor: Optional[TranscriptionProcessor] = None
+        
         logger.info(
             "Initialized PipecatService with config: "
             f"audio_in={self.config.websocket.audio_in_enabled}, "
@@ -160,6 +164,10 @@ class PipecatService:
             
             self.user_aggregator, self.assistant_aggregator = self._create_aggregators()
             logger.debug("User and assistant aggregators created")
+            
+            # Create transcription processor (Day 7)
+            self.transcription_processor = self._create_transcription_processor()
+            logger.debug("Transcription processor created")
             
             # Create pipeline
             self.pipeline = self._create_pipeline()
@@ -344,18 +352,41 @@ class PipecatService:
             logger.error(f"Failed to create aggregators: {e}", exc_info=True)
             raise PipecatPipelineError(f"Aggregator initialization failed: {e}") from e
     
+    def _create_transcription_processor(self) -> TranscriptionProcessor:
+        """
+        Create transcription processor wrapping Faster-Whisper.
+        
+        The transcription processor converts speech to text using the existing
+        TranscriptionService (Faster-Whisper).
+        
+        Returns:
+            Configured TranscriptionProcessor
+            
+        Example:
+            >>> service = PipecatService()
+            >>> processor = service._create_transcription_processor()
+            >>> # Processor ready to transcribe audio frames
+        """
+        try:
+            processor = TranscriptionProcessor()
+            logger.debug("Created transcription processor with Faster-Whisper")
+            return processor
+        except Exception as e:
+            logger.error(f"Failed to create transcription processor: {e}", exc_info=True)
+            raise PipecatPipelineError(f"Transcription processor initialization failed: {e}") from e
+    
     def _create_pipeline(self) -> Pipeline:
         """
         Create Pipecat audio processing pipeline.
         
-        Current implementation (Day 5): Pipeline with VAD
+        Current implementation (Day 7): Pipeline with VAD and Transcription
         - Receives audio from WebSocket
         - User aggregator with VAD detects speech
-        - Sends audio back to WebSocket (echo for now)
+        - Transcription processor converts speech to text
+        - Sends transcript back to WebSocket (for now)
         - Assistant aggregator manages responses
         
         Future iterations will add:
-        - STT (Faster-Whisper) - Day 7-8
         - LLM (existing chat agent) - Day 7-8
         - TTS (Piper) - Day 9-10
         
@@ -363,20 +394,22 @@ class PipecatService:
             Configured Pipeline
             
         Raises:
-            PipecatPipelineError: If transport or aggregators not initialized
+            PipecatPipelineError: If components not initialized
         """
         if not self.transport:
             raise PipecatPipelineError("Transport must be initialized before creating pipeline")
         if not self.user_aggregator or not self.assistant_aggregator:
             raise PipecatPipelineError("Aggregators must be initialized before creating pipeline")
+        if not self.transcription_processor:
+            raise PipecatPipelineError("Transcription processor must be initialized before creating pipeline")
         
-        # Pipeline with VAD (Day 5)
-        # VAD is integrated into user_aggregator, not a separate processor
+        # Pipeline with VAD and Transcription (Day 7)
         return Pipeline([
-            self.transport.input(),       # Receive audio from WebSocket
-            self.user_aggregator,         # Aggregate user speech with VAD
-            self.transport.output(),      # Send audio back to WebSocket (echo for now)
-            self.assistant_aggregator,    # Aggregate assistant responses
+            self.transport.input(),           # Receive audio from WebSocket
+            self.user_aggregator,             # Aggregate user speech with VAD
+            self.transcription_processor,     # ← NEW: Convert speech to text
+            self.transport.output(),          # Send transcript back (for now)
+            self.assistant_aggregator,        # Aggregate assistant responses
         ])
     
     def _create_task(self) -> PipelineTask:
@@ -427,6 +460,10 @@ class PipecatService:
         if self.user_aggregator:
             logger.debug("Cleaning up user aggregator")
             self.user_aggregator = None
+        
+        if self.transcription_processor:
+            logger.debug("Cleaning up transcription processor")
+            self.transcription_processor = None
         
         if self.context:
             logger.debug("Cleaning up LLM context")
