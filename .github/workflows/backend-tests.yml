@@ -46,8 +46,8 @@ jobs:
         with:
           path: |
             ~/.cache/uv
-            surfsense_backend/.venv
-          key: python-deps-${{ hashFiles('surfsense_backend/uv.lock') }}
+            backend/.venv
+          key: python-deps-${{ hashFiles('backend/pyproject.toml') }}
           restore-keys: |
             python-deps-
 
@@ -60,12 +60,12 @@ jobs:
 
       - name: Install dependencies
         if: steps.backend-changes.outputs.backend == 'true'
-        working-directory: surfsense_backend
+        working-directory: backend
         run: uv sync
 
       - name: Run unit tests
         if: steps.backend-changes.outputs.backend == 'true'
-        working-directory: surfsense_backend
+        working-directory: backend
         run: uv run pytest -m unit
 
   integration-tests:
@@ -118,8 +118,8 @@ jobs:
         with:
           path: |
             ~/.cache/uv
-            surfsense_backend/.venv
-          key: python-deps-${{ hashFiles('surfsense_backend/uv.lock') }}
+            backend/.venv
+          key: python-deps-${{ hashFiles('backend/pyproject.toml') }}
           restore-keys: |
             python-deps-
 
@@ -132,12 +132,12 @@ jobs:
 
       - name: Install dependencies
         if: steps.backend-changes.outputs.backend == 'true'
-        working-directory: surfsense_backend
+        working-directory: backend
         run: uv sync
 
       - name: Run integration tests
         if: steps.backend-changes.outputs.backend == 'true'
-        working-directory: surfsense_backend
+        working-directory: backend
         env:
           TEST_DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/surfsense_test
           SECRET_KEY: ci-test-secret-key-not-for-production
