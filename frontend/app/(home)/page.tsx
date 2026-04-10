@@ -5,10 +5,10 @@ import { useEffect } from "react";
 
 /**
  * Homepage disabled - redirects directly to dashboard
- * 
+ *
  * TEMPORARY: Auth disabled for development
  * Always redirects to dashboard (no login check)
- * 
+ *
  * Original homepage components preserved in components/homepage/
  * To re-enable: restore the original imports and JSX
  */

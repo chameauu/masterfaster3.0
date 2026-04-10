@@ -13,7 +13,7 @@ interface DashboardLayoutProps {
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
 	// TEMPORARY: Auth disabled for development
 	// Skip auth check and go directly to dashboard
-	
+
 	// Original auth check (commented out):
 	/*
 	const [isCheckingAuth, setIsCheckingAuth] = useState(true);

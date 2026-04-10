@@ -79,6 +79,8 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { TTSToggle } from "@/components/voice/TTSToggle";
+import { VoiceToggle } from "@/components/voice/VoiceToggle";
 import { getConnectorIcon } from "@/contracts/enums/connectorIcons";
 import {
 	CONNECTOR_ICON_TO_TYPES,
@@ -90,10 +92,8 @@ import { useBatchCommentsPreload } from "@/hooks/use-comments";
 import { useCommentsSync } from "@/hooks/use-comments-sync";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useElectronAPI } from "@/hooks/use-platform";
-import { cn } from "@/lib/utils";
-import { VoiceToggle } from "@/components/voice/VoiceToggle";
-import { TTSToggle } from "@/components/voice/TTSToggle";
 import { useTextToSpeech } from "@/hooks/use-text-to-speech";
+import { cn } from "@/lib/utils";
 
 const COMPOSER_PLACEHOLDER = "Ask anything · Type / for prompts · Type @ to mention docs";
 
@@ -673,7 +673,7 @@ const Composer: FC = () => {
 		},
 		[mentionedDocuments, setMentionedDocuments]
 	);
-	
+
 	// TTS state and handlers
 	const [ttsEnabled, setTtsEnabled] = useState(false);
 	const tts = useTextToSpeech({
@@ -681,7 +681,7 @@ const Composer: FC = () => {
 		pitch: 1.0,
 		volume: 1.0,
 	});
-	
+
 	// Auto-speak AI responses when TTS is enabled
 	const lastMessageContent = useAuiState(({ thread }) => {
 		const messages = thread.messages;
@@ -695,7 +695,7 @@ const Composer: FC = () => {
 			.join(" ");
 		return textContent;
 	});
-	
+
 	// Speak AI responses automatically
 	useEffect(() => {
 		if (ttsEnabled && lastMessageContent && !isThreadRunning) {
@@ -706,14 +706,14 @@ const Composer: FC = () => {
 			return () => clearTimeout(timer);
 		}
 	}, [ttsEnabled, lastMessageContent, isThreadRunning, tts.speak]);
-	
+
 	const handleTTSToggle = useCallback(() => {
 		setTtsEnabled((prev) => !prev);
 		if (tts.isSpeaking) {
 			tts.stop();
 		}
 	}, [tts]);
-	
+
 	const handleTTSPauseResume = useCallback(() => {
 		if (tts.isPaused) {
 			tts.resume();
@@ -721,7 +721,7 @@ const Composer: FC = () => {
 			tts.pause();
 		}
 	}, [tts]);
-	
+
 	const handleTTSStop = useCallback(() => {
 		tts.stop();
 	}, [tts]);
@@ -816,7 +816,7 @@ const Composer: FC = () => {
 						/>,
 						document.body
 					)}
-				<ComposerAction 
+				<ComposerAction
 					isBlockedByOtherUser={isBlockedByOtherUser}
 					ttsEnabled={ttsEnabled}
 					ttsIsSpeaking={tts.isSpeaking}
@@ -842,7 +842,7 @@ interface ComposerActionProps {
 	onTTSStop: () => void;
 }
 
-const ComposerAction: FC<ComposerActionProps> = ({ 
+const ComposerAction: FC<ComposerActionProps> = ({
 	isBlockedByOtherUser = false,
 	ttsEnabled,
 	ttsIsSpeaking,
@@ -859,13 +859,13 @@ const ComposerAction: FC<ComposerActionProps> = ({
 	const isDesktop = useMediaQuery("(min-width: 640px)");
 	const { openDialog: openUploadDialog } = useDocumentUploadDialog();
 	const aui = useAui();
-	
+
 	// Handle voice transcript - insert into composer and auto-submit
 	const handleVoiceTranscript = useCallback(
 		(transcript: string) => {
 			// Set the transcript in composer
 			aui.composer().setText(transcript);
-			
+
 			// Auto-submit after a short delay to ensure text is set
 			setTimeout(() => {
 				aui.composer().send();
@@ -875,7 +875,7 @@ const ComposerAction: FC<ComposerActionProps> = ({
 	);
 	const [toolsScrollPos, setToolsScrollPos] = useState<"top" | "middle" | "bottom">("top");
 	const toolsRafRef = useRef<number | undefined>(undefined);
-	
+
 	const handleToolsScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
 		const el = e.currentTarget;
 		if (toolsRafRef.current) return;
@@ -886,14 +886,14 @@ const ComposerAction: FC<ComposerActionProps> = ({
 			toolsRafRef.current = undefined;
 		});
 	}, []);
-	
+
 	useEffect(
 		() => () => {
 			if (toolsRafRef.current) cancelAnimationFrame(toolsRafRef.current);
 		},
 		[]
 	);
-	
+
 	const isComposerTextEmpty = useAuiState(({ composer }) => {
 		const text = composer.text?.trim() || "";
 		return text.length === 0;
@@ -933,11 +933,13 @@ const ComposerAction: FC<ComposerActionProps> = ({
 	const isWebSearchEnabled = hasWebSearchTool && !disabledToolsSet.has("web_search");
 	// DISABLED: Filter out video and image generation tools completely
 	const filteredTools = useMemo(
-		() => agentTools?.filter((t) => 
-			t.name !== "web_search" && 
-			t.name !== "generate_video_presentation" && 
-			t.name !== "generate_image"
-		) ?? [],
+		() =>
+			agentTools?.filter(
+				(t) =>
+					t.name !== "web_search" &&
+					t.name !== "generate_video_presentation" &&
+					t.name !== "generate_image"
+			) ?? [],
 		[agentTools]
 	);
 	const groupedTools = useMemo(() => {
@@ -1312,7 +1314,7 @@ const ComposerAction: FC<ComposerActionProps> = ({
 					onPauseResume={onTTSPauseResume}
 					onStop={onTTSStop}
 				/>
-				
+
 				<AuiIf condition={({ thread }) => !thread.isRunning}>
 					<ComposerPrimitive.Send asChild disabled={isSendDisabled}>
 						<TooltipIconButton

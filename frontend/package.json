@@ -150,6 +150,8 @@
 		"@svgr/webpack": "^8.1.0",
 		"@tailwindcss/postcss": "^4.1.11",
 		"@tailwindcss/typography": "^0.5.16",
+		"@testing-library/jest-dom": "^6.9.1",
+		"@testing-library/react": "^16.3.2",
 		"@types/babel__standalone": "^7.1.9",
 		"@types/canvas-confetti": "^1.9.0",
 		"@types/gapi": "^0.0.47",
@@ -158,13 +160,17 @@
 		"@types/pg": "^8.15.5",
 		"@types/react": "^19.1.8",
 		"@types/react-dom": "^19.1.6",
+		"@vitejs/plugin-react": "^4.7.0",
+		"@vitest/ui": "^2.1.9",
 		"cross-env": "^7.0.3",
 		"drizzle-kit": "^0.31.5",
 		"eslint": "^9.32.0",
 		"eslint-config-next": "15.2.0",
+		"jsdom": "^29.0.2",
 		"tailwindcss": "^4.1.11",
 		"tsx": "^4.20.6",
 		"typescript": "^5.8.3",
-		"vite": "^7.3.1"
+		"vite": "^7.3.1",
+		"vitest": "^2.1.9"
 	}
 }
