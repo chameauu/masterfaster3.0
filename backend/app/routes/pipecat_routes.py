@@ -4,9 +4,9 @@ Pipecat WebRTC Routes.
 FastAPI routes for Pipecat voice service with WebRTC transport.
 """
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, HTTPException
-from typing import Optional
 import logging
+
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from app.services.voice.pipecat_service import PipecatService
 
@@ -19,30 +19,30 @@ router = APIRouter(prefix="/api/v1/pipecat", tags=["pipecat"])
 async def pipecat_websocket(websocket: WebSocket):
     """
     WebSocket endpoint for Pipecat voice streaming.
-    
+
     This endpoint handles:
     - WebRTC signaling
     - Audio streaming (bidirectional)
     - Session management
-    
+
     The pipeline currently echoes audio back (tracer bullet).
     Future iterations will add VAD, STT, LLM, and TTS.
     """
     await websocket.accept()
     logger.info("Pipecat WebSocket connection established")
-    
+
     service = PipecatService()
-    
+
     try:
         # Start Pipecat service with WebSocket
         await service.start(websocket)
-        
+
         # Note: service.start() sets up the pipeline but doesn't block
         # In production, we'll need to handle the pipeline lifecycle properly
         # For now, we keep the connection open
-        
+
         logger.info("Pipecat service started, keeping connection alive")
-        
+
         # Keep connection alive until client disconnects
         # The pipeline will handle audio streaming automatically
         while service.is_running:
@@ -53,7 +53,7 @@ async def pipecat_websocket(websocket: WebSocket):
             except WebSocketDisconnect:
                 logger.info("Client disconnected")
                 break
-            
+
     except WebSocketDisconnect:
         logger.info("Pipecat WebSocket disconnected")
     except Exception as e:
@@ -71,5 +71,5 @@ async def pipecat_health():
         "status": "ok",
         "service": "pipecat",
         "message": "Pipecat service is running",
-        "version": "0.0.108"
+        "version": "0.0.108",
     }

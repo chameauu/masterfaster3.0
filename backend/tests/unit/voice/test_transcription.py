@@ -28,62 +28,62 @@ class TestTranscriptionService:
     def test_transcribe_clear_audio(self, mock_whisper_model):
         """
         Test transcribing clear audio.
-        
+
         Behavior: Given clear audio input, the service should return
         accurate transcription with high confidence.
         """
         # Arrange - Mock the Whisper model response
         mock_model_instance = MagicMock()
         mock_whisper_model.return_value = mock_model_instance
-        
+
         # Mock segment with transcribed text
         mock_segment = MagicMock()
         mock_segment.text = "hello world"
-        
+
         # Mock transcription info
         mock_info = MagicMock()
         mock_info.language = "en"
         mock_info.language_probability = 0.95
         mock_info.duration = 1.5
-        
+
         # Configure the mock to return our test data
         mock_model_instance.transcribe.return_value = ([mock_segment], mock_info)
-        
+
         # Create service and test audio
         service = TranscriptionService()
         audio_data = self._create_test_audio()
-        
+
         # Act
         result = service.transcribe(audio_data)
-        
+
         # Assert
         assert isinstance(result, TranscriptionResult)
         assert result.text == "hello world"
         assert result.confidence == 0.95
         assert result.language == "en"
         assert result.duration == 1.5
-    
+
     @patch("app.services.voice.transcription.WhisperModel")
     def test_transcribe_empty_audio(self, mock_whisper_model):
         """
         Test handling empty audio gracefully.
-        
+
         Behavior: Given empty audio data, the service should raise
         a clear error message, not crash.
         """
         # Arrange
         service = TranscriptionService()
         empty_audio = b""
-        
+
         # Act & Assert
         with pytest.raises(ValueError, match="Audio data is empty"):
             service.transcribe(empty_audio)
-    
+
     @patch("app.services.voice.transcription.WhisperModel")
     def test_transcribe_corrupted_audio(self, mock_whisper_model):
         """
         Test handling corrupted audio gracefully.
-        
+
         Behavior: Given corrupted audio data, the service should raise
         AudioProcessingError with a helpful message.
         """
@@ -91,39 +91,39 @@ class TestTranscriptionService:
         mock_model_instance = MagicMock()
         mock_whisper_model.return_value = mock_model_instance
         mock_model_instance.transcribe.side_effect = Exception("Invalid audio format")
-        
+
         # Reset the cached model to force using our mock
         TranscriptionService._model = None
-        
+
         service = TranscriptionService()
         corrupted_audio = b"not a valid wav file"
-        
+
         # Act & Assert
         with pytest.raises(AudioProcessingError, match="Failed to transcribe audio"):
             service.transcribe(corrupted_audio)
-    
+
     def _create_test_audio(self) -> bytes:
         """
         Helper to create minimal test audio data.
-        
+
         Returns a minimal valid WAV file header.
         The actual audio content doesn't matter for unit tests
         since we mock the Whisper model.
         """
         # Minimal WAV header (44 bytes)
         wav_header = (
-            b'RIFF'
-            b'\x24\x00\x00\x00'  # File size - 8
-            b'WAVE'
-            b'fmt '
-            b'\x10\x00\x00\x00'  # fmt chunk size
-            b'\x01\x00'          # Audio format (PCM)
-            b'\x01\x00'          # Channels (mono)
-            b'\x80\x3e\x00\x00'  # Sample rate (16000 Hz)
-            b'\x00\x7d\x00\x00'  # Byte rate
-            b'\x02\x00'          # Block align
-            b'\x10\x00'          # Bits per sample (16)
-            b'data'
-            b'\x00\x00\x00\x00'  # Data size
+            b"RIFF"
+            b"\x24\x00\x00\x00"  # File size - 8
+            b"WAVE"
+            b"fmt "
+            b"\x10\x00\x00\x00"  # fmt chunk size
+            b"\x01\x00"  # Audio format (PCM)
+            b"\x01\x00"  # Channels (mono)
+            b"\x80\x3e\x00\x00"  # Sample rate (16000 Hz)
+            b"\x00\x7d\x00\x00"  # Byte rate
+            b"\x02\x00"  # Block align
+            b"\x10\x00"  # Bits per sample (16)
+            b"data"
+            b"\x00\x00\x00\x00"  # Data size
         )
         return wav_header

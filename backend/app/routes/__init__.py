@@ -102,4 +102,6 @@ router.include_router(youtube_router)  # YouTube playlist resolution
 router.include_router(prompts_router)
 router.include_router(autocomplete_router)  # Lightweight autocomplete with KB context
 router.include_router(voice_router)  # Voice assistant for accessibility
-router.include_router(pipecat_router)  # Pipecat WebRTC voice streaming (new implementation)
+router.include_router(
+    pipecat_router
+)  # Pipecat WebRTC voice streaming (new implementation)

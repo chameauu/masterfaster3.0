@@ -298,6 +298,7 @@ auth_backend = AuthenticationBackend(
 
 fastapi_users = FastAPIUsers[User, uuid.UUID](get_user_manager, [auth_backend])
 
+
 # TEMPORARY: Auth disabled for development
 # Create a mock user dependency that returns a fake user
 async def _get_mock_user() -> User:
@@ -306,16 +307,16 @@ async def _get_mock_user() -> User:
     TODO: Re-enable auth by removing this function and uncommenting the original lines below.
     """
     from sqlalchemy import select
-    
+
     async with async_session_maker() as session:
         # Try to get any existing user from database
         result = await session.execute(select(User).limit(1))
         user = result.scalars().first()
-        
+
         if user:
             # Return the first existing user (regardless of email)
             return user
-        
+
         # If no users exist, create a dev user with valid email
         dev_user = User(
             id=uuid.UUID("00000000-0000-0000-0000-000000000001"),
@@ -330,6 +331,7 @@ async def _get_mock_user() -> User:
         await session.commit()
         await session.refresh(dev_user)
         return dev_user
+
 
 # TEMPORARY: Use mock user instead of real auth
 current_active_user = _get_mock_user

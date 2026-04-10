@@ -3,8 +3,8 @@
 /**
  * Voice Demo Page
  *
- * Simple demo page to test voice widget integration.
- * This is a temporary page for testing before dashboard integration.
+ * Demo page to test complete voice widget with Pipecat integration.
+ * Tests WebRTC client + audio capture + audio playback.
  */
 
 import { VoiceWidget } from "@/components/voice/voice-widget";
@@ -14,10 +14,16 @@ export default function VoiceDemoPage() {
 		<div className="min-h-screen flex flex-col items-center justify-center gap-8 p-8">
 			<div className="text-center space-y-2">
 				<h1 className="text-3xl font-bold">Voice Widget Demo</h1>
-				<p className="text-muted-foreground">Testing Pipecat WebRTC integration</p>
+				<p className="text-muted-foreground">
+					Complete Pipecat WebRTC integration with audio playback
+				</p>
 			</div>
 
-			<VoiceWidget wsUrl="ws://localhost:8000/api/v1/pipecat/ws" autoConnect={false} />
+			<VoiceWidget
+				wsUrl="ws://localhost:8000/api/v1/pipecat/ws"
+				autoConnect={false}
+				showVolumeControls={true}
+			/>
 
 			<div className="max-w-2xl space-y-4 text-sm text-muted-foreground">
 				<div>
@@ -29,9 +35,25 @@ export default function VoiceDemoPage() {
 						</li>
 						<li>Click the microphone button to start</li>
 						<li>Speak into your microphone</li>
-						<li>Audio will stream to Pipecat backend</li>
-						<li>Backend will process and respond (TTS playback coming in Day 15-16)</li>
+						<li>Audio streams to Pipecat backend (WebRTC)</li>
+						<li>Backend processes with Silero VAD + Faster-Whisper STT</li>
+						<li>Backend responds with Piper TTS</li>
+						<li>Response plays automatically in browser</li>
+						<li>Adjust volume with slider</li>
 					</ol>
+				</div>
+
+				<div>
+					<h3 className="font-semibold mb-2">Features:</h3>
+					<ul className="list-disc list-inside space-y-1">
+						<li>WebRTC connection to Pipecat backend</li>
+						<li>Real-time audio capture (16kHz mono)</li>
+						<li>Audio level visualization</li>
+						<li>TTS audio playback</li>
+						<li>Volume control (0-100%)</li>
+						<li>Connection status indicators</li>
+						<li>Error handling</li>
+					</ul>
 				</div>
 
 				<div>

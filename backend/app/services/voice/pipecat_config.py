@@ -5,8 +5,6 @@ Centralized configuration for Pipecat voice service.
 """
 
 from dataclasses import dataclass
-from typing import Optional
-
 
 # Default system prompt for voice assistant
 DEFAULT_SYSTEM_PROMPT = (
@@ -20,11 +18,11 @@ DEFAULT_SYSTEM_PROMPT = (
 @dataclass
 class PipecatWebSocketConfig:
     """Configuration for FastAPI WebSocket transport."""
-    
+
     audio_in_enabled: bool = True
     audio_out_enabled: bool = True
     add_wav_header: bool = False
-    
+
     def __post_init__(self):
         """Validate configuration."""
         if not self.audio_in_enabled and not self.audio_out_enabled:
@@ -34,22 +32,22 @@ class PipecatWebSocketConfig:
 @dataclass
 class PipecatPipelineConfig:
     """Configuration for Pipecat pipeline."""
-    
+
     enable_metrics: bool = True
     enable_usage_metrics: bool = False
-    
+
     # VAD configuration
     vad_confidence: float = 0.7
     vad_start_secs: float = 0.2
     vad_stop_secs: float = 0.2
     vad_min_volume: float = 0.6
-    
+
     # LLM context configuration
     system_prompt: str = DEFAULT_SYSTEM_PROMPT
-    
+
     # TTS configuration (Day 10)
     tts_voice: str = "en_US-ryan-high"
-    
+
     def __post_init__(self):
         """Validate configuration."""
         if not 0.0 <= self.vad_confidence <= 1.0:
@@ -69,10 +67,10 @@ class PipecatPipelineConfig:
 @dataclass
 class PipecatServiceConfig:
     """Main configuration for Pipecat service."""
-    
+
     websocket: PipecatWebSocketConfig
     pipeline: PipecatPipelineConfig
-    
+
     @classmethod
     def default(cls) -> "PipecatServiceConfig":
         """Create default configuration."""
@@ -80,7 +78,7 @@ class PipecatServiceConfig:
             websocket=PipecatWebSocketConfig(),
             pipeline=PipecatPipelineConfig(),
         )
-    
+
     @classmethod
     def for_testing(cls) -> "PipecatServiceConfig":
         """Create configuration optimized for testing."""

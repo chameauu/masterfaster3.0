@@ -3,8 +3,8 @@
 /**
  * Voice Widget Component
  *
- * Minimal voice interface for dashboard integration.
- * Combines WebRTC client + audio capture for real-time voice streaming.
+ * Complete voice interface for dashboard integration.
+ * Combines WebRTC client + audio capture + audio playback for full voice conversation.
  *
  * Following React best practices:
  * - rerender-use-ref-transient-values: Audio/WebSocket in refs
@@ -12,10 +12,12 @@
  * - client-event-listeners: Cleanup on unmount
  */
 
-import { Mic, MicOff } from "lucide-react";
+import { Mic, MicOff, Volume2, VolumeX } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
 import { useAudioCapture } from "@/hooks/use-audio-capture";
+import { useAudioPlayback } from "@/hooks/use-audio-playback";
 import { useWebRTCClient } from "@/hooks/use-webrtc-client";
 
 export interface VoiceWidgetProps {
@@ -25,12 +27,15 @@ export interface VoiceWidgetProps {
 	autoConnect?: boolean;
 	/** Callback when transcription received */
 	onTranscription?: (text: string) => void;
+	/** Show volume controls */
+	showVolumeControls?: boolean;
 }
 
 export function VoiceWidget({
 	wsUrl = "ws://localhost:8000/api/v1/pipecat/ws",
 	autoConnect = false,
 	onTranscription,
+	showVolumeControls = true,
 }: VoiceWidgetProps) {
 	const [isActive, setIsActive] = useState(false);
 
@@ -46,6 +51,13 @@ export function VoiceWidget({
 		channelCount: 1,
 	});
 
+	// Audio playback for TTS responses
+	const playback = useAudioPlayback({
+		sampleRate: 16000,
+		channelCount: 1,
+		volume: 0.8,
+	});
+
 	// Connect audio capture to WebRTC client
 	useEffect(() => {
 		audio.onAudioData((audioData) => {
@@ -55,13 +67,21 @@ export function VoiceWidget({
 		});
 	}, [audio, webrtc]);
 
-	// Handle received audio from backend (TTS)
+	// Handle received audio from backend (TTS) and play it
 	useEffect(() => {
 		webrtc.onAudioReceived((audioData) => {
 			console.log("[VoiceWidget] Received audio:", audioData.byteLength, "bytes");
-			// TODO: Play audio (Day 15-16)
+
+			// Convert ArrayBuffer to Float32Array
+			const float32Data = new Float32Array(audioData);
+			playback.queueAudio(float32Data);
+
+			// Auto-start playback if not already playing
+			if (!playback.isPlaying && playback.queueSize > 0) {
+				playback.startPlayback();
+			}
 		});
-	}, [webrtc]);
+	}, [webrtc, playback]);
 
 	// Auto-connect on mount if enabled
 	useEffect(() => {
@@ -72,8 +92,9 @@ export function VoiceWidget({
 		return () => {
 			webrtc.disconnect();
 			audio.stopCapture();
+			playback.stop();
 		};
-	}, [autoConnect, webrtc, audio]);
+	}, [autoConnect, webrtc, audio, playback]);
 
 	// Toggle voice capture
 	const toggleVoice = useCallback(async () => {
@@ -138,6 +159,13 @@ export function VoiceWidget({
 					</div>
 				)}
 
+				{playback.isPlaying && (
+					<div className="flex items-center gap-2 text-sm text-muted-foreground">
+						<Volume2 className="size-3" />
+						<span>Playing response...</span>
+					</div>
+				)}
+
 				{audio.isCapturing && (
 					<div className="text-xs text-muted-foreground">Audio level: {audio.audioLevel}</div>
 				)}
@@ -145,6 +173,8 @@ export function VoiceWidget({
 				{webrtc.error && <div className="text-xs text-destructive">{webrtc.error}</div>}
 
 				{audio.error && <div className="text-xs text-destructive">{audio.error}</div>}
+
+				{playback.error && <div className="text-xs text-destructive">{playback.error}</div>}
 			</div>
 
 			{/* Audio Level Visualizer */}
@@ -155,6 +185,31 @@ export function VoiceWidget({
 							className="h-full bg-primary transition-all duration-100"
 							style={{ width: `${(audio.audioLevel / 255) * 100}%` }}
 						/>
+					</div>
+				</div>
+			)}
+
+			{/* Volume Controls */}
+			{showVolumeControls && (
+				<div className="w-full max-w-xs space-y-2">
+					<div className="flex items-center gap-2">
+						{playback.volume === 0 ? (
+							<VolumeX className="size-4 text-muted-foreground" />
+						) : (
+							<Volume2 className="size-4 text-muted-foreground" />
+						)}
+						<Slider
+							value={[playback.volume]}
+							onValueChange={([value]) => playback.setVolume(value)}
+							min={0}
+							max={1}
+							step={0.1}
+							className="flex-1"
+							aria-label="Volume"
+						/>
+						<span className="text-xs text-muted-foreground w-8 text-right">
+							{Math.round(playback.volume * 100)}%
+						</span>
 					</div>
 				</div>
 			)}

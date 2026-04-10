@@ -34,7 +34,7 @@ from app.config import (
 from app.db import User, create_db_and_tables, get_async_session
 from app.routes import router as crud_router
 from app.routes.auth_routes import router as auth_router
-from app.schemas import UserCreate, UserRead, UserUpdate
+from app.schemas import UserCreate, UserRead
 from app.tasks.surfsense_docs_indexer import seed_surfsense_docs
 from app.users import SECRET, auth_backend, current_active_user, fastapi_users
 from app.utils.perf import get_perf_logger, log_system_snapshot
@@ -398,9 +398,11 @@ app.include_router(
 
 # TEMPORARY: Custom /users/me endpoint without authentication
 from fastapi import APIRouter
+
 from app.users import _get_mock_user
 
 users_router_no_auth = APIRouter(prefix="/users", tags=["users"])
+
 
 @users_router_no_auth.get("/me")
 async def get_current_user_no_auth():
@@ -412,15 +414,22 @@ async def get_current_user_no_auth():
     # Return as dict with all required fields to bypass validation
     return {
         "id": str(user.id),
-        "email": user.email if "@" in user.email and "." in user.email.split("@")[1] else "dev@example.com",
+        "email": user.email
+        if "@" in user.email and "." in user.email.split("@")[1]
+        else "dev@example.com",
         "is_active": user.is_active,
         "is_superuser": user.is_superuser,
         "is_verified": user.is_verified,
         "display_name": user.display_name or "Dev User",
         "avatar_url": user.avatar_url,
-        "pages_limit": user.pages_limit if hasattr(user, 'pages_limit') and user.pages_limit is not None else 1000,
-        "pages_used": user.pages_used if hasattr(user, 'pages_used') and user.pages_used is not None else 0,
+        "pages_limit": user.pages_limit
+        if hasattr(user, "pages_limit") and user.pages_limit is not None
+        else 1000,
+        "pages_used": user.pages_used
+        if hasattr(user, "pages_used") and user.pages_used is not None
+        else 0,
     }
+
 
 app.include_router(users_router_no_auth)
 
