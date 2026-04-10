@@ -201,7 +201,7 @@ System: "I didn't find any documents about quantum mechanics. Would you like me 
 
 **Step 1: Welcome**
 ```
-System: "Welcome to SurfSense Voice Assistant. This is a fully voice-controlled research assistant designed for accessibility. I'll guide you through a quick setup. At any time, you can say 'help' for assistance or 'skip' to move forward. Ready to begin?"
+System: "Welcome to VocalAIze Voice Assistant. This is a fully voice-controlled research assistant designed for accessibility. I'll guide you through a quick setup. At any time, you can say 'help' for assistance or 'skip' to move forward. Ready to begin?"
 ```
 
 **Step 2: Microphone Test**

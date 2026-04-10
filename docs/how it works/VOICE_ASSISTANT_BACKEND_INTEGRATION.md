@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document describes what exists in the SurfSense backend that we can leverage, and what new components we need to add for the voice assistant feature.
+This document describes what exists in the VocalAIze backend that we can leverage, and what new components we need to add for the voice assistant feature.
 
 ---
 
@@ -18,7 +18,7 @@ This document describes what exists in the SurfSense backend that we can leverag
 - Middleware support
 - WebSocket support (available but not heavily used)
 
-**Location:** `surfsense_backend/app/app.py`
+**Location:** `vocalaize_backend/app/app.py`
 
 **Key Features:**
 - CORS configuration
@@ -652,7 +652,7 @@ This document describes what exists in the SurfSense backend that we can leverag
 **Function:** `handle_voice_search(query, filters, user_id)`
 
 **Process:**
-1. Call SurfSense search API
+1. Call VocalAIze search API
 2. Get top results with citations
 3. Format for voice output
 4. Return natural language response
@@ -1336,4 +1336,4 @@ This document describes what exists in the SurfSense backend that we can leverag
 
 ---
 
-The existing SurfSense backend provides ~70% of what we need. We're adding a new voice interface layer that integrates cleanly with existing services while maintaining the same patterns and architecture.
+The existing VocalAIze backend provides ~70% of what we need. We're adding a new voice interface layer that integrates cleanly with existing services while maintaining the same patterns and architecture.

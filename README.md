@@ -1,6 +1,6 @@
 # Voice-First Research Assistant for Visually Impaired Users
 
-> **A fully voice-controlled research assistant built on SurfSense, designed specifically for accessibility and independence.**
+> **A fully voice-controlled research assistant built on VocalAIze, designed specifically for accessibility and independence.**
 
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Accessibility](https://img.shields.io/badge/accessibility-WCAG%202.1%20AAA-green.svg)](docs/ACCESSIBILITY_FIRST_DESIGN.md)
@@ -82,19 +82,18 @@ Assistant: "That was from your biology textbook, chapter 3, page 23."
 - **MediaStream API** - Microphone access
 - **WebSocket** - Real-time communication
 
-**Backend (SurfSense):**
+**Backend :**
 - **FastAPI** - Async web framework
 - **PostgreSQL + pgvector** - Vector database
 - **Elasticsearch** - Full-text search
 - **Redis** - Caching and sessions
 - **Celery** - Background tasks
 
-**Data Sources (20+ Connectors):**
-- Gmail, Google Drive, Google Calendar
-- OneDrive, Dropbox
-- Slack, Discord, Teams
-- Notion, Confluence, Jira, Linear
-- GitHub, and more...
+**Data Sources :**
+- Gmail
+- Google Drive
+- Google Calendar
+- Google Classroom
 
 ### System Flow
 
@@ -105,7 +104,7 @@ Pipecat Pipeline:
   ├── Silero VAD (voice detection) → 
   ├── Faster-Whisper STT (transcription) → 
   ├── Gemma 4 E2B (intent + response) → 
-  ├── SurfSense API (search/RAG) → 
+  ├── VocalAIze API (search/RAG) → 
   └── Piper TTS (speech synthesis) → 
 WebSocket → Audio Playback (Web Audio API) → 
 User hears response
@@ -300,7 +299,7 @@ Visit `/voice-demo` to test the voice assistant:
 - [Audio Playback](docs/PIPECAT_DAY15_16_COMPLETE.md) - TTS playback
 - [Voice Widget](docs/PIPECAT_DAY17_18_COMPLETE.md) - UI components
 - [Testing Strategy](docs/PIPECAT_DAY19_20_PLAN.md) - E2E testing
-- [SurfSense Backend](docs/SURFSENSE_BACKEND_OVERVIEW.md) - Existing infrastructure
+
 
 ---
 
@@ -604,7 +603,7 @@ uv run pytest tests/integration/
 | VAD Detection | <100ms | ~80ms | ✅ |
 | STT (Whisper) | <500ms | ~300ms | ✅ |
 | Intent (Gemma) | <300ms | ~200ms | ✅ |
-| Search (SurfSense) | <800ms | ~500ms | ✅ |
+| Search (VocalAIze) | <800ms | ~500ms | ✅ |
 | Response Gen | <200ms | ~150ms | ✅ |
 | TTS (Piper) | <500ms | ~300ms | ✅ |
 | Network Transfer | <100ms | ~70ms | ✅ |
@@ -720,11 +719,9 @@ Please read our [Code of Conduct](CODE_OF_CONDUCT.md) before contributing.
 ## 🙏 Acknowledgments
 
 ### Built On
-- [SurfSense](https://github.com/MODSetter/SurfSense) - Document search and RAG platform
 - [Pipecat](https://pipecat.ai) - Real-time voice AI framework
 - [Faster-Whisper](https://github.com/guillaumekln/faster-whisper) - Fast speech-to-text
 - [Piper](https://github.com/rhasspy/piper) - High-quality TTS
-- [Gemma](https://ai.google.dev/gemma) - Google's open LLM
 
 ### Inspired By
 - [NotebookLM](https://notebooklm.google.com/) - AI research assistant

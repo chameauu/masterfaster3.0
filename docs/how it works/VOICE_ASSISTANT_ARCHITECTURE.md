@@ -2,7 +2,7 @@
 
 ## System Overview
 
-This document describes the complete architecture for the Voice-First NotebookLM for Visually Impaired Users, built on top of SurfSense with Gemma 4 E2B.
+This document describes the complete architecture for the Voice-First NotebookLM for Visually Impaired Users, built on top of VocalAIze with Gemma 4 E2B.
 
 ---
 
@@ -76,7 +76,7 @@ This document describes the complete architecture for the Voice-First NotebookLM
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                  SURFSENSE BACKEND (Existing)                    │
+│                  VOCALAIZE BACKEND (Existing)                    │
 │                                                                  │
 │  ┌──────────────────────────────────────────────────────────┐  │
 │  │                      FastAPI App                          │  │
@@ -211,7 +211,7 @@ This document describes the complete architecture for the Voice-First NotebookLM
 
 4. **Tool Execution**
    - Call appropriate handler
-   - Fetch data from SurfSense
+   - Fetch data from VocalAIze
    - Process results
 
 5. **Response Generation**
@@ -323,7 +323,7 @@ This document describes the complete architecture for the Voice-First NotebookLM
 - User ID
 
 **Process:**
-1. Call SurfSense search API
+1. Call VocalAIze search API
 2. Receive ranked results with citations
 3. Format for voice output
 4. Return natural language response
@@ -343,7 +343,7 @@ This document describes the complete architecture for the Voice-First NotebookLM
 - User ID
 
 **Process:**
-1. Fetch document chunks from SurfSense
+1. Fetch document chunks from VocalAIze
 2. Use Gemma 4 E2B to generate summary
 3. Structure summary (intro, key points, conclusion)
 4. Format for voice
@@ -393,7 +393,7 @@ This document describes the complete architecture for the Voice-First NotebookLM
 
 ---
 
-### 5. SurfSense Backend (Existing)
+### 5. VocalAIze Backend (Existing)
 
 **Purpose:** Provide document search, RAG, and data management
 
@@ -506,7 +506,7 @@ This document describes the complete architecture for the Voice-First NotebookLM
      "filters": {"type": "notes"}
    }
    ↓
-7. Search tool calls SurfSense API:
+7. Search tool calls VocalAIze API:
    POST /api/search/chunks
    {
      "query": "photosynthesis",
@@ -514,7 +514,7 @@ This document describes the complete architecture for the Voice-First NotebookLM
      "user_id": "user123"
    }
    ↓
-8. SurfSense RAG pipeline:
+8. VocalAIze RAG pipeline:
    - Embeds query
    - Vector search in pgvector
    - Keyword search in Elasticsearch
@@ -557,7 +557,7 @@ User: "Quiz me on chapter 3"
 System processes (STT → Intent → Tool)
    ↓
 Quiz tool:
-- Fetches chapter 3 content from SurfSense
+- Fetches chapter 3 content from VocalAIze
 - Gemma 4 E2B generates 5 questions
 - Stores quiz state in Redis
    ↓
@@ -619,7 +619,7 @@ Quiz results saved to PostgreSQL
 │  └────────────────────────────────────┘ │
 │                                          │
 │  ┌────────────────────────────────────┐ │
-│  │  SurfSense Backend                 │ │
+│  │  VocalAIze Backend                 │ │
 │  │  Port: 8000                        │ │
 │  └────────────────────────────────────┘ │
 │                                          │
@@ -655,7 +655,7 @@ Quiz results saved to PostgreSQL
         └────────────┬────────────┘
                      │
         ┌────────────▼────────────┐
-        │  SurfSense Backend      │
+        │  VocalAIze Backend      │
         │  (Multiple instances)   │
         └────────────┬────────────┘
                      │
@@ -702,7 +702,7 @@ Quiz results saved to PostgreSQL
 │  └────────────────────────────────────┘ │
 │                                          │
 │  ┌────────────────────────────────────┐ │
-│  │  SurfSense Backend                 │ │
+│  │  VocalAIze Backend                 │ │
 │  │  - Search API                      │ │
 │  │  - RAG pipeline                    │ │
 │  │  - Data connectors                 │ │
@@ -729,17 +729,17 @@ Quiz results saved to PostgreSQL
 ```
 1. User opens voice interface
    ↓
-2. Redirects to SurfSense login
+2. Redirects to VocalAIze login
    ↓
 3. User authenticates (email/password or OAuth)
    ↓
-4. SurfSense issues JWT token
+4. VocalAIze issues JWT token
    ↓
 5. Token stored in browser (httpOnly cookie)
    ↓
 6. All voice requests include token
    ↓
-7. Voice service validates token with SurfSense
+7. Voice service validates token with VocalAIze
    ↓
 8. If valid, process request
    If invalid, return 401 Unauthorized
@@ -777,7 +777,7 @@ Quiz results saved to PostgreSQL
 - Session affinity for WebRTC
 - Auto-scaling based on CPU/memory
 
-**SurfSense Backend:**
+**VocalAIze Backend:**
 - Already designed for scale
 - Multiple instances behind load balancer
 - Celery workers for async tasks
@@ -963,7 +963,7 @@ This architecture provides:
 
 The system leverages:
 - **Gemma 4 E2B** for fast, local intelligence
-- **SurfSense** for powerful document search and RAG
+- **VocalAIze** for powerful document search and RAG
 - **Pipecat** for real-time voice streaming
 - **Modern web technologies** for universal access
 

@@ -2,7 +2,7 @@
 
 ## Project Vision
 
-Building a fully voice-driven research assistant that makes SurfSense's powerful features accessible without any screen interaction. This addresses a real accessibility gap by creating a hands-free, voice-first alternative to NotebookLM specifically designed for visually impaired users.
+Building a fully voice-driven research assistant that makes VocalAIze's powerful features accessible without any screen interaction. This addresses a real accessibility gap by creating a hands-free, voice-first alternative to NotebookLM specifically designed for visually impaired users.
 
 ---
 
@@ -26,8 +26,8 @@ A voice-first research assistant that enables users to:
 **Flow:**
 1. Pipecat captures the audio stream
 2. Faster-Whisper transcribes it to text
-3. Claude interprets the intent and calls SurfSense's search API
-4. SurfSense RAG returns relevant chunks with citations
+3. Claude interprets the intent and calls VocalAIze's search API
+4. VocalAIze RAG returns relevant chunks with citations
 5. Claude formats a natural response
 6. Piper reads the cited answer back aloud
 
@@ -40,7 +40,7 @@ A voice-first research assistant that enables users to:
 **User says:** "Summarize chapter 3 of my biology PDF"
 
 **Flow:**
-1. Claude retrieves the relevant chunks via SurfSense's RAG
+1. Claude retrieves the relevant chunks via VocalAIze's RAG
 2. Generates a structured summary
 3. Reads it out via TTS
 4. User can follow up with "repeat that" or "give me more detail on the first point"
@@ -81,12 +81,12 @@ System: "Excellent! That's right. Question 3..."
 **User says:** "Search my emails about the exam schedule"
 
 **Flow:**
-1. SurfSense's existing Gmail connector has already indexed emails
+1. VocalAIze's existing Gmail connector has already indexed emails
 2. Voice search works identically to document search
 3. Results include email metadata (sender, date, subject)
 4. User can ask follow-ups: "Read the full email" or "When did I receive this?"
 
-**Supported Connectors (Already in SurfSense):**
+**Supported Connectors (Already in VocalAIze):**
 - Gmail
 - Google Drive
 - Slack
@@ -119,7 +119,7 @@ System: "Excellent! That's right. Question 3..."
                          │
                          ▼
 ┌─────────────────────────────────────────────────────────┐
-│              SurfSense Backend (Existing)                │
+│              VocalAIze Backend (Existing)                │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐             │
 │  │  Search  │  │   RAG    │  │Documents │             │
 │  │   API    │  │ Retrieval│  │   API    │             │
@@ -136,7 +136,7 @@ System: "Excellent! That's right. Question 3..."
 
 ## Why This Works Well
 
-### 1. SurfSense Already Has the Foundation
+### 1. VocalAIze Already Has the Foundation
 ✅ RAG pipeline is production-ready  
 ✅ Document processing handles PDFs, emails, Drive files  
 ✅ Search and retrieval are battle-tested  
@@ -162,11 +162,11 @@ System: "Excellent! That's right. Question 3..."
 
 ### Voice Pipeline (New)
 - **Pipecat** - Real-time voice framework with WebRTC support
-- **Faster-Whisper** - STT (already in SurfSense dependencies)
+- **Faster-Whisper** - STT (already in VocalAIze dependencies)
 - **Piper TTS** - High-quality, fast text-to-speech
 - **Claude 3.5 Sonnet** - Intent understanding + tool orchestration
 
-### Backend (Existing - SurfSense)
+### Backend (Existing - VocalAIze)
 - **FastAPI** - Async web framework
 - **PostgreSQL + pgvector** - Vector database
 - **LangGraph** - Conversation state management
@@ -236,7 +236,7 @@ System: "Excellent! That's right. Question 3..."
 - Better voice quality for long-form content
 - Lower latency
 - More natural prosody
-- SurfSense has Kokoro, but Piper is better for accessibility
+- VocalAIze has Kokoro, but Piper is better for accessibility
 
 ### 2. Pipecat Integration
 **Why Pipecat:**
@@ -288,10 +288,10 @@ tools = [
 ```
 
 ### 4. Conversation State Management
-**Use SurfSense's existing infrastructure:**
+**Use VocalAIze's existing infrastructure:**
 
 ```python
-# Already in SurfSense!
+# Already in VocalAIze!
 from app.agents.new_chat.checkpointer import get_checkpointer
 
 # Store voice conversation state
@@ -333,8 +333,8 @@ tool_call = claude_response.tool_calls[0]
 #   "filters": {"type": "notes"}
 # }
 
-# Step 5: Execute Search (SurfSense API)
-results = surfsense_api.search(
+# Step 5: Execute Search (VocalAIze API)
+results = vocalaize_api.search(
     query="photosynthesis",
     filters={"type": "notes"}
 )
@@ -369,7 +369,7 @@ tool_call = {
 }
 
 # Step 4: Retrieve chunks
-chunks = surfsense_api.get_chunks(
+chunks = vocalaize_api.get_chunks(
     document="biology.pdf",
     section="chapter 3"
 )
@@ -401,7 +401,7 @@ pipecat.play_audio(audio)
 # User: "Quiz me on chapter 3"
 
 # Step 1: Retrieve content
-chunks = surfsense_api.get_chunks(
+chunks = vocalaize_api.get_chunks(
     document="biology.pdf",
     section="chapter 3"
 )
@@ -455,7 +455,7 @@ pipecat.play_audio(audio)
 ## Why This Will Work
 
 ### 1. Technical Feasibility: HIGH ✅
-- SurfSense backend is production-ready
+- VocalAIze backend is production-ready
 - Faster-Whisper already integrated
 - Just need to add Pipecat + Piper layer
 - Claude tool calling is straightforward
@@ -558,11 +558,11 @@ System: "From your biology notes on March 15th..."
 ```yaml
 Voice Pipeline (New Layer):
   Audio Framework: Pipecat
-  Speech-to-Text: Faster-Whisper (already in SurfSense)
+  Speech-to-Text: Faster-Whisper (already in VocalAIze)
   Text-to-Speech: Piper
   LLM Orchestration: Claude 3.5 Sonnet
   
-Backend (Existing - SurfSense):
+Backend (Existing - VocalAIze):
   Web Framework: FastAPI
   Database: PostgreSQL + pgvector
   Search: Elasticsearch
@@ -586,7 +586,7 @@ Deployment:
 
 **Tasks:**
 - Set up Pipecat + Piper in development environment
-- Connect to SurfSense search API
+- Connect to VocalAIze search API
 - Basic voice search working end-to-end
 - Test latency and audio quality
 
@@ -706,17 +706,17 @@ Deployment:
 - [ ] Target deployment: Cloud or self-hosted?
 - [ ] Mobile app priority: High or low?
 - [ ] LLM choice: Claude only or support local models?
-- [ ] User authentication: Integrate with SurfSense or separate?
+- [ ] User authentication: Integrate with VocalAIze or separate?
 - [ ] Pricing model: Free, freemium, or paid?
 
 ---
 
 ## Conclusion
 
-This is a **high-impact, technically feasible project** that addresses a real accessibility gap. SurfSense provides 80% of the backend infrastructure, and the voice layer is well-architected with proven technologies.
+This is a **high-impact, technically feasible project** that addresses a real accessibility gap. VocalAIze provides 80% of the backend infrastructure, and the voice layer is well-architected with proven technologies.
 
 **Key Strengths:**
-- Strong technical foundation (SurfSense)
+- Strong technical foundation (VocalAIze)
 - Clear user need (accessibility)
 - Differentiated product (voice-first)
 - Achievable timeline (12 weeks to launch)
@@ -733,10 +733,10 @@ Start with the prototype phase to validate the voice pipeline and user experienc
 - [Piper TTS](https://github.com/rhasspy/piper)
 - [Faster-Whisper](https://github.com/guillaumekln/faster-whisper)
 - [Claude API](https://docs.anthropic.com/)
-- [SurfSense GitHub](https://github.com/MODSetter/SurfSense)
+- [VocalAIze GitHub](https://github.com/MODSetter/SurfSense)
 
 ### Community
-- SurfSense Discord: https://discord.gg/ejRNvftDp9
+- VocalAIze Discord: https://discord.gg/ejRNvftDp9
 - Pipecat Community
 - Accessibility testing groups
 

@@ -10,17 +10,17 @@
 
 ## 📋 Executive Summary
 
-This roadmap provides a step-by-step implementation plan for building the voice assistant feature into SurfSense. It synthesizes:
+This roadmap provides a step-by-step implementation plan for building the voice assistant feature into VocalAIze. It synthesizes:
 
 - **TDD Implementation Guide** - Test-driven development approach
-- **Existing Frontend Components** - Reusable SurfSense components
+- **Existing Frontend Components** - Reusable VocalAIze components
 - **Frontend Components Spec** - New components to build
 - **System Architecture** - Well-structured monolith design
 - **Vercel React Best Practices** - Performance optimization
 
 ### Key Insights
 
-**Reusability:** 60-70% of existing SurfSense components can be reused or adapted
+**Reusability:** 60-70% of existing VocalAIze components can be reused or adapted
 **Architecture:** Well-structured monolith (not microservices) for 1-3 person team
 **Approach:** Vertical slicing with TDD (one test → one implementation → repeat)
 **Target:** <2.5s end-to-end latency, 100% screen-free operation
@@ -57,7 +57,7 @@ Enable visually impaired users to interact with their research documents using o
 │  │  - QuizInterface                   │ │
 │  └────────────────────────────────────┘ │
 │  ┌────────────────────────────────────┐ │
-│  │  Existing SurfSense Components     │ │
+│  │  Existing VocalAIze Components     │ │
 │  │  - UI components (reuse 100%)      │ │
 │  │  - Layout (reuse 100%)             │ │
 │  │  - Providers (reuse 100%)          │ │
@@ -77,7 +77,7 @@ Enable visually impaired users to interact with their research documents using o
 │  │  - TTS (Piper/Kokoro)              │ │
 │  └────────────────────────────────────┘ │
 │  ┌────────────────────────────────────┐ │
-│  │  Existing SurfSense Core           │ │
+│  │  Existing VocalAIze Core           │ │
 │  │  - Search API (reuse)              │ │
 │  │  - RAG pipeline (reuse)            │ │
 │  │  - Auth (reuse)                    │ │
@@ -196,7 +196,7 @@ Enable visually impaired users to interact with their research documents using o
 #### Week 2: Tool Integration
 
 **Day 6-8: Search Tool Handler**
-- [ ] Write test: Call SurfSense search API
+- [ ] Write test: Call VocalAIze search API
 - [ ] Implement: Search API integration
 - [ ] Write test: Format results for voice
 - [ ] Implement: Natural language formatting with Gemma
@@ -507,7 +507,7 @@ Enable visually impaired users to interact with their research documents using o
 | Upload | <200ms | Network transfer |
 | Transcription | <500ms | Whisper processing |
 | Intent understanding | <300ms | Gemma inference |
-| Search | <500ms | SurfSense API |
+| Search | <500ms | VocalAIze API |
 | Response generation | <400ms | Gemma formatting |
 | TTS | <300ms | Piper/Kokoro |
 | Download | <200ms | Network transfer |

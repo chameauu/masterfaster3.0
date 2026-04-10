@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document describes the existing SurfSense web frontend and what needs to be added to integrate the voice assistant feature.
+This document describes the existing VocalAIze web frontend and what needs to be added to integrate the voice assistant feature.
 
 ---
 
@@ -690,7 +690,7 @@ app/dashboard/voice/
 ```
 
 **Color Scheme:**
-- Use existing SurfSense theme
+- Use existing VocalAIze theme
 - High contrast for accessibility
 - Clear state indicators (green=listening, blue=processing, red=error)
 - Smooth animations for state transitions
@@ -985,4 +985,4 @@ app/dashboard/voice/
 7. **Test thoroughly** - Unit, integration, E2E tests
 8. **Document** - User and developer guides
 
-The existing SurfSense frontend provides a solid foundation. We're adding a new feature (voice assistant) that integrates cleanly with the existing architecture while maintaining consistency in design, state management, and user experience.
+The existing VocalAIze frontend provides a solid foundation. We're adding a new feature (voice assistant) that integrates cleanly with the existing architecture while maintaining consistency in design, state management, and user experience.
