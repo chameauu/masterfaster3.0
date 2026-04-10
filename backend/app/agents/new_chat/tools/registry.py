@@ -101,6 +101,7 @@ from .shared_memory import (
 from .user_memory import create_recall_memory_tool, create_save_memory_tool
 from .video_presentation import create_generate_video_presentation_tool
 from .web_search import create_web_search_tool
+from .agent_browser import create_agent_browser_tool
 
 # =============================================================================
 # Tool Definition
@@ -212,6 +213,14 @@ BUILTIN_TOOLS: list[ToolDefinition] = [
             db_session=deps["db_session"],
         ),
         requires=["db_session"],
+    ),
+    # Agent-browser tool for voice-controlled interface
+    ToolDefinition(
+        name="agent_browser",
+        description="Control the SurfSense web interface using natural language browser automation commands",
+        factory=lambda deps: create_agent_browser_tool(),
+        requires=[],  # No dependencies needed
+        enabled_by_default=True,  # Enabled by default for voice interface
     ),
     # =========================================================================
     # USER MEMORY TOOLS - private or team store by thread_visibility

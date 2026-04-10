@@ -247,6 +247,32 @@ _TOOL_INSTRUCTIONS["web_search"] = """
   - When presenting results, reference sources as markdown links [descriptive text](url) — never bare URLs.
 """
 
+_TOOL_INSTRUCTIONS["agent_browser"] = """
+- agent_browser: Control the SurfSense web interface using natural language browser automation.
+  - Use this when the user wants to control the SurfSense interface via voice commands.
+  - This tool is specifically designed for voice-controlled navigation and interaction.
+  - CRITICAL TWO-STEP WORKFLOW FOR CLICKS:
+    * Step 1: Call with natural language (e.g., "click upload button") → Returns page snapshot with element refs
+    * Step 2: Analyze snapshot, find the element ref (e.g., @e18), then call again with "click @e18"
+    * You MUST make BOTH calls to complete a click action
+  - Trigger scenarios:
+    * "Go to dashboard" / "Navigate to documents" / "Open settings"
+    * "Click the first button" / "Click submit" / "Click upload"
+    * "Read the page" / "What's on this page" / "Read the title"
+    * "Search for quantum computing"
+    * "Take a screenshot"
+  - Args:
+    - command: Natural language command OR direct element reference command (e.g., "click @e5")
+    - context: Optional context about the current page or previous actions
+  - Returns: Result of the browser action (page content, confirmation, or error)
+  - IMPORTANT: For clicking, you MUST:
+    1. First call: agent_browser(command="click upload button") → Get snapshot
+    2. Analyze the snapshot output to find the element (e.g., "button 'Upload' [ref=e18]")
+    3. Second call: agent_browser(command="click @e18") → Actually click it
+  - After executing navigation commands, confirm the action (e.g., "Navigated to dashboard").
+  - After reading commands, present the content in a clear, structured format.
+"""
+
 # Memory tool instructions have private and shared variants.
 # We store them keyed as "save_memory" / "recall_memory" with sub-keys.
 _MEMORY_TOOL_INSTRUCTIONS: dict[str, dict[str, str]] = {
@@ -447,10 +473,47 @@ _TOOL_EXAMPLES["web_search"] = """
   - Call: `web_search(query="weather New York today")`
 """
 
+_TOOL_EXAMPLES["agent_browser"] = """
+- User: "Go to the dashboard"
+  - Call: `agent_browser(command="go to dashboard")`
+  - Then confirm: "Navigated to the dashboard."
+
+- User: "Read what's on this page"
+  - Call: `agent_browser(command="read the page")`
+  - Then present the page content in a structured format.
+
+- User: "Click the upload button"
+  - Step 1: Call `agent_browser(command="click upload button")`
+  - Tool returns snapshot: "- button 'Upload' [ref=e18]\\n- button 'Submit' [ref=e19]..."
+  - Step 2: Analyze snapshot and find: "button 'Upload' [ref=e18]"
+  - Step 3: Call `agent_browser(command="click @e18")`
+  - Tool returns: "Action completed successfully"
+  - Then confirm: "I clicked the upload button."
+
+- User: "Click the first button"
+  - Step 1: Call `agent_browser(command="read the page")`
+  - Tool returns snapshot with buttons
+  - Step 2: Find first button in snapshot: "@e1 [button] 'Submit'"
+  - Step 3: Call `agent_browser(command="click @e1")`
+  - Then confirm: "I clicked the first button (Submit)."
+
+- User: "Search for quantum computing"
+  - Step 1: Call `agent_browser(command="read the page")`
+  - Tool returns snapshot
+  - Step 2: Find search input: "@e2 [textbox] 'Search'"
+  - Step 3: Call `agent_browser(command="fill @e2 with quantum computing")`
+  - Then confirm the search was initiated.
+
+CRITICAL: For ANY click/fill action, you MUST make TWO tool calls:
+1. First call to get snapshot and find element refs
+2. Second call with the specific @eXX reference to perform the action
+"""
+
 # All tool names that have prompt instructions (order matters for prompt readability)
 _ALL_TOOL_NAMES_ORDERED = [
     "search_surfsense_docs",
     "web_search",
+    "agent_browser",
     "generate_podcast",
     "generate_video_presentation",
     "generate_report",

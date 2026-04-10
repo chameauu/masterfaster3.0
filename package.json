@@ -1,5 +1,11 @@
 {
   "name": "surfsense",
   "private": true,
-  "packageManager": "pnpm@10.24.0"
+  "packageManager": "pnpm@10.24.0",
+  "dependencies": {
+    "agent-browser": "^0.25.3"
+  },
+  "scripts": {
+    "postinstall": "agent-browser install"
+  }
 }

@@ -22,6 +22,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     && rm -rf /var/lib/apt/lists/*
 
+# Install Node.js 18.x for agent-browser
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+    apt-get install -y nodejs && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install agent-browser and download Chrome binary
+RUN npm install -g agent-browser@0.25.3 && \
+    agent-browser install && \
+    agent-browser --version
+
 # Install Pandoc 3.x from GitHub as a fallback for Linux where pypandoc_binary
 # may not bundle pandoc (apt ships 2.17 which has broken table rendering).
 # pypandoc_binary bundles pandoc on Windows/macOS; on Linux it picks this up.
