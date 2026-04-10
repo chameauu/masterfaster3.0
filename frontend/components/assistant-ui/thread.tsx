@@ -91,6 +91,7 @@ import { useCommentsSync } from "@/hooks/use-comments-sync";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useElectronAPI } from "@/hooks/use-platform";
 import { cn } from "@/lib/utils";
+import { VoiceToggle } from "@/components/voice/VoiceToggle";
 
 const COMPOSER_PLACEHOLDER = "Ask anything · Type / for prompts · Type @ to mention docs";
 
@@ -783,6 +784,8 @@ const ComposerAction: FC<ComposerActionProps> = ({ isBlockedByOtherUser = false 
 	const { openDialog: openUploadDialog } = useDocumentUploadDialog();
 	const [toolsScrollPos, setToolsScrollPos] = useState<"top" | "middle" | "bottom">("top");
 	const toolsRafRef = useRef<number>();
+	const aui = useAui();
+	
 	const handleToolsScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
 		const el = e.currentTarget;
 		if (toolsRafRef.current) return;
@@ -793,11 +796,26 @@ const ComposerAction: FC<ComposerActionProps> = ({ isBlockedByOtherUser = false 
 			toolsRafRef.current = undefined;
 		});
 	}, []);
+	
 	useEffect(
 		() => () => {
 			if (toolsRafRef.current) cancelAnimationFrame(toolsRafRef.current);
 		},
 		[]
+	);
+	
+	// Handle voice transcript - insert into composer and auto-submit
+	const handleVoiceTranscript = useCallback(
+		(transcript: string) => {
+			// Set the transcript in composer
+			aui.composer().setText(transcript);
+			
+			// Auto-submit after a short delay to ensure text is set
+			setTimeout(() => {
+				aui.composer().send();
+			}, 100);
+		},
+		[aui]
 	);
 	const isComposerTextEmpty = useAuiState(({ composer }) => {
 		const text = composer.text?.trim() || "";
@@ -1208,6 +1226,8 @@ const ComposerAction: FC<ComposerActionProps> = ({ isBlockedByOtherUser = false 
 				</div>
 			)}
 			<div className="flex items-center gap-2">
+				<VoiceToggle onTranscript={handleVoiceTranscript} />
+				
 				<AuiIf condition={({ thread }) => !thread.isRunning}>
 					<ComposerPrimitive.Send asChild disabled={isSendDisabled}>
 						<TooltipIconButton

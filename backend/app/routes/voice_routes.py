@@ -14,7 +14,7 @@ from app.services.voice.intent import Intent, IntentService
 from app.services.voice.tools.search import SearchTool
 from app.services.voice.transcription import TranscriptionService
 
-router = APIRouter(prefix="/api/voice", tags=["voice"])
+router = APIRouter(prefix="/voice", tags=["voice"])
 
 
 class VoiceSearchResponse(BaseModel):
@@ -24,6 +24,55 @@ class VoiceSearchResponse(BaseModel):
     intent: Intent
     results: list[dict]
     voice_response: str
+
+
+@router.post("/transcribe")
+async def transcribe_audio(
+    audio: UploadFile = File(..., description="Audio file for transcription")
+):
+    """
+    Simple transcription endpoint.
+    
+    Transcribes audio to text without intent understanding or search.
+    Used by always-listening voice interface in dashboard.
+    
+    Args:
+        audio: Audio file upload (any format supported by Faster-Whisper)
+    
+    Returns:
+        JSON with transcript text
+    
+    Raises:
+        HTTPException: If transcription fails
+    """
+    try:
+        # Read audio data
+        audio_data = await audio.read()
+        
+        if not audio_data:
+            raise HTTPException(status_code=400, detail="Empty audio file")
+        
+        print(f"[Voice/Transcribe] Received audio: {len(audio_data)} bytes, content_type: {audio.content_type}")
+        
+        # Transcribe
+        transcription_service = TranscriptionService()
+        transcription_result = transcription_service.transcribe(audio_data)
+        
+        print(f"[Voice/Transcribe] Transcription: {transcription_result.text}")
+        
+        return {
+            "transcript": transcription_result.text,
+            "confidence": transcription_result.confidence,
+        }
+    
+    except ValueError as e:
+        print(f"[Voice/Transcribe] ValueError: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        print(f"[Voice/Transcribe] Exception: {type(e).__name__}: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Transcription failed: {str(e)}")
 
 
 @router.post("/search", response_model=VoiceSearchResponse)
@@ -51,12 +100,22 @@ async def voice_search(
     try:
         # Step 1: Transcribe audio
         audio_data = await audio.read()
+        
+        if not audio_data:
+            raise HTTPException(status_code=400, detail="Empty audio file")
+        
+        print(f"[Voice] Received audio: {len(audio_data)} bytes, content_type: {audio.content_type}")
+        
         transcription_service = TranscriptionService()
         transcription_result = transcription_service.transcribe(audio_data)
+        
+        print(f"[Voice] Transcription: {transcription_result.text}")
         
         # Step 2: Understand intent
         intent_service = IntentService()
         intent = intent_service.understand(transcription_result.text)
+        
+        print(f"[Voice] Intent: {intent.intent_type.value}")
         
         # Step 3: Execute search based on intent
         if intent.intent_type.value == "search":
@@ -84,6 +143,10 @@ async def voice_search(
             )
     
     except ValueError as e:
+        print(f"[Voice] ValueError: {e}")
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
+        print(f"[Voice] Exception: {type(e).__name__}: {e}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Voice search failed: {str(e)}")

@@ -6,10 +6,13 @@ from transcribed voice commands.
 """
 
 import json
+import logging
 from enum import Enum
 from typing import Optional
 
 from pydantic import BaseModel
+
+logger = logging.getLogger(__name__)
 
 
 class IntentType(str, Enum):
@@ -44,6 +47,10 @@ class IntentService:
         """Initialize the intent service with LLM router."""
         from app.services.llm_service import get_auto_mode_llm
         self.llm = get_auto_mode_llm()
+        
+        # If LLM is not available, we'll use a simple rule-based fallback
+        if self.llm is None:
+            logger.warning("LLM not available for intent understanding, using rule-based fallback")
     
     def understand(self, text: str, context: Optional[dict] = None) -> Intent:
         """
@@ -56,6 +63,10 @@ class IntentService:
         Returns:
             Intent with type, parameters, and confidence
         """
+        # If LLM is not available, use rule-based fallback
+        if self.llm is None:
+            return self._rule_based_intent(text)
+        
         # Build prompt for LLM
         prompt = self._build_prompt(text, context)
         
@@ -81,6 +92,75 @@ class IntentService:
                 confidence=0.0,
                 raw_text=text,
             )
+    
+    def _rule_based_intent(self, text: str) -> Intent:
+        """
+        Simple rule-based intent classification as fallback.
+        
+        Args:
+            text: User's voice command
+        
+        Returns:
+            Intent based on keyword matching
+        """
+        text_lower = text.lower()
+        
+        # Search intent keywords
+        search_keywords = ["search", "find", "look for", "show me", "get me"]
+        if any(keyword in text_lower for keyword in search_keywords):
+            # Extract query (everything after the keyword)
+            query = text
+            for keyword in search_keywords:
+                if keyword in text_lower:
+                    parts = text_lower.split(keyword, 1)
+                    if len(parts) > 1:
+                        query = parts[1].strip()
+                    break
+            
+            return Intent(
+                intent_type=IntentType.SEARCH,
+                parameters={"query": query, "filters": {}},
+                confidence=0.7,
+                raw_text=text,
+            )
+        
+        # Summarize intent keywords
+        summarize_keywords = ["summarize", "summary", "sum up", "brief"]
+        if any(keyword in text_lower for keyword in summarize_keywords):
+            return Intent(
+                intent_type=IntentType.SUMMARIZE,
+                parameters={"document": text},
+                confidence=0.7,
+                raw_text=text,
+            )
+        
+        # Quiz intent keywords
+        quiz_keywords = ["quiz", "test me", "ask me"]
+        if any(keyword in text_lower for keyword in quiz_keywords):
+            return Intent(
+                intent_type=IntentType.QUIZ,
+                parameters={"topic": text},
+                confidence=0.7,
+                raw_text=text,
+            )
+        
+        # Help intent keywords
+        help_keywords = ["help", "what can you do", "how do i"]
+        if any(keyword in text_lower for keyword in help_keywords):
+            return Intent(
+                intent_type=IntentType.HELP,
+                parameters={},
+                confidence=0.8,
+                raw_text=text,
+            )
+        
+        # Default to search with the full text as query
+        return Intent(
+            intent_type=IntentType.SEARCH,
+            parameters={"query": text, "filters": {}},
+            confidence=0.5,
+            raw_text=text,
+        )
     
     def _build_prompt(self, text: str, context: Optional[dict] = None) -> str:
         """
