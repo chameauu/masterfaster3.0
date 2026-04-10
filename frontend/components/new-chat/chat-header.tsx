@@ -17,6 +17,7 @@ import type {
 	// VisionLLMConfig,
 } from "@/contracts/types/new-llm-config.types";
 import { ModelSelector } from "./model-selector";
+import { VoiceButtonCompact } from "@/components/voice/voice-button-compact";
 
 interface ChatHeaderProps {
 	searchSpaceId: number;
@@ -134,6 +135,12 @@ export function ChatHeader({ searchSpaceId, className }: ChatHeaderProps) {
 				// onAddNewVision={handleAddVisionModel}
 				className={className}
 			/>
+			{/* DISABLED: Pipecat voice button (WebSocket connection issue) */}
+			{/* <VoiceButtonCompact
+				autoConnect={false}
+				size="default"
+				iconOnly={true}
+			/> */}
 			<ModelConfigDialog
 				open={dialogOpen}
 				onOpenChange={handleDialogClose}

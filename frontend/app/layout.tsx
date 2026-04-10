@@ -11,6 +11,7 @@ import { ThemeProvider } from "@/components/theme/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { LocaleProvider } from "@/contexts/LocaleContext";
 import { PlatformProvider } from "@/contexts/platform-context";
+import { VoiceSettingsProvider } from "@/contexts/voice-settings-context";
 import { ReactQueryClientProvider } from "@/lib/query-client/query-client.provider";
 import { cn } from "@/lib/utils";
 
@@ -141,15 +142,17 @@ export default function RootLayout({
 								defaultTheme="system"
 							>
 								<PlatformProvider>
-									<RootProvider>
-										<ReactQueryClientProvider>
-											<ZeroProvider>
-												<GlobalLoadingProvider>{children}</GlobalLoadingProvider>
-											</ZeroProvider>
-										</ReactQueryClientProvider>
-										<Toaster />
-										<AnnouncementToastProvider />
-									</RootProvider>
+									<VoiceSettingsProvider>
+										<RootProvider>
+											<ReactQueryClientProvider>
+												<ZeroProvider>
+													<GlobalLoadingProvider>{children}</GlobalLoadingProvider>
+												</ZeroProvider>
+											</ReactQueryClientProvider>
+											<Toaster />
+											<AnnouncementToastProvider />
+										</RootProvider>
+									</VoiceSettingsProvider>
 								</PlatformProvider>
 							</ThemeProvider>
 						</I18nProvider>

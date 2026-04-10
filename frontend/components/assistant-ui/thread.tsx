@@ -93,6 +93,7 @@ import { useCommentsSync } from "@/hooks/use-comments-sync";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { useElectronAPI } from "@/hooks/use-platform";
 import { useTextToSpeech } from "@/hooks/use-text-to-speech";
+import { useVoiceSettings } from "@/contexts/voice-settings-context";
 import { cn } from "@/lib/utils";
 
 const COMPOSER_PLACEHOLDER = "Ask anything · Type / for prompts · Type @ to mention docs";
@@ -676,10 +677,13 @@ const Composer: FC = () => {
 
 	// TTS state and handlers
 	const [ttsEnabled, setTtsEnabled] = useState(false);
+	const voiceSettings = useVoiceSettings();
 	const tts = useTextToSpeech({
-		rate: 1.0,
-		pitch: 1.0,
-		volume: 1.0,
+		language: voiceSettings.ttsLanguage,
+		voiceName: voiceSettings.ttsVoiceName,
+		rate: voiceSettings.ttsRate,
+		pitch: voiceSettings.ttsPitch,
+		volume: voiceSettings.ttsVolume,
 	});
 
 	// Auto-speak AI responses when TTS is enabled
@@ -1305,7 +1309,7 @@ const ComposerAction: FC<ComposerActionProps> = ({
 				</div>
 			)}
 			<div className="flex items-center gap-2">
-				<VoiceToggle onTranscript={handleVoiceTranscript} />
+				<VoiceToggle onTranscript={handleVoiceTranscript} paused={ttsIsSpeaking} />
 				<TTSToggle
 					isEnabled={ttsEnabled}
 					isSpeaking={ttsIsSpeaking}

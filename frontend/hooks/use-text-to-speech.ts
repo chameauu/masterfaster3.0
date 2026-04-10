@@ -23,6 +23,10 @@ export interface TextToSpeechOptions {
 	pitch?: number;
 	/** Speech volume (0 to 1, default: 1) */
 	volume?: number;
+	/** Language for speech synthesis (BCP-47 code, e.g., 'en-US', 'es-ES') */
+	language?: string;
+	/** Voice name to use (will search for matching voice) */
+	voiceName?: string;
 	/** Called when speech starts */
 	onStart?: () => void;
 	/** Called when speech ends */
@@ -53,7 +57,7 @@ export interface TextToSpeechResult {
 }
 
 export function useTextToSpeech(options: TextToSpeechOptions = {}): TextToSpeechResult {
-	const { voice, rate = 1, pitch = 1, volume = 1, onStart, onEnd, onError } = options;
+	const { voice, rate = 1, pitch = 1, volume = 1, language = 'en-US', voiceName, onStart, onEnd, onError } = options;
 
 	// Check if Web Speech API is supported
 	const isSupported = typeof window !== "undefined" && "speechSynthesis" in window;
@@ -91,6 +95,34 @@ export function useTextToSpeech(options: TextToSpeechOptions = {}): TextToSpeech
 		};
 	}, [isSupported]);
 
+	// Select voice based on language and voiceName
+	const selectedVoice = useCallback(() => {
+		if (voice) return voice;
+		if (voices.length === 0) return null;
+
+		// Try to find voice by name
+		if (voiceName) {
+			const namedVoice = voices.find(v => v.name === voiceName);
+			if (namedVoice) return namedVoice;
+		}
+
+		// Try to find local voice for language
+		let matchedVoice = voices.find(v => v.lang === language && v.localService);
+		if (matchedVoice) return matchedVoice;
+
+		// Fallback to any voice for language
+		matchedVoice = voices.find(v => v.lang === language);
+		if (matchedVoice) return matchedVoice;
+
+		// Fallback to language prefix (e.g., 'en' for 'en-US')
+		const langPrefix = language.split('-')[0];
+		matchedVoice = voices.find(v => v.lang.startsWith(langPrefix));
+		if (matchedVoice) return matchedVoice;
+
+		// Final fallback to first available voice
+		return voices[0];
+	}, [voice, voices, language, voiceName]);
+
 	// Speak text (functional setState)
 	const speak = useCallback(
 		(text: string) => {
@@ -107,7 +139,8 @@ export function useTextToSpeech(options: TextToSpeechOptions = {}): TextToSpeech
 
 				// Create utterance
 				const utterance = new SpeechSynthesisUtterance(text);
-				utterance.voice = voice || voices[0] || null;
+				utterance.voice = selectedVoice();
+				utterance.lang = language;
 				utterance.rate = rate;
 				utterance.pitch = pitch;
 				utterance.volume = volume;
@@ -153,7 +186,7 @@ export function useTextToSpeech(options: TextToSpeechOptions = {}): TextToSpeech
 				if (onError) onError(error);
 			}
 		},
-		[isSupported, voice, voices, rate, pitch, volume, onStart, onEnd, onError]
+		[isSupported, voice, voices, rate, pitch, volume, language, selectedVoice, onStart, onEnd, onError]
 	);
 
 	// Pause speech

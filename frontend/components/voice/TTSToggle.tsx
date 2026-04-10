@@ -3,7 +3,7 @@
 /**
  * TTS Toggle Component
  *
- * Toggle button for Text-to-Speech functionality.
+ * Toggle button for Text-to-Speech functionality with settings.
  * Reads AI responses aloud for visually impaired users.
  *
  * Following React best practices:
@@ -11,16 +11,24 @@
  * - rerender-memo: Memoized for performance
  */
 
-import { Pause, Play, Volume2, VolumeX } from "lucide-react";
-import { memo, useCallback } from "react";
+import { Pause, Play, Settings, Volume2, VolumeX } from "lucide-react";
+import { memo, useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+	Popover,
+	PopoverContent,
+	PopoverTrigger,
+} from "@/components/ui/popover";
+import { VoiceSettings } from "./voice-settings";
+import { useVoiceSettings } from "@/contexts/voice-settings-context";
 
 // Hoist static JSX (rendering-hoist-jsx)
 const VOLUME_ICON = <Volume2 className="size-5" />;
 const VOLUME_OFF_ICON = <VolumeX className="size-5" />;
 const PAUSE_ICON = <Pause className="size-5" />;
 const PLAY_ICON = <Play className="size-5" />;
+const SETTINGS_ICON = <Settings className="size-4" />;
 
 interface TTSToggleProps {
 	/** Is TTS enabled? */
@@ -48,6 +56,9 @@ export const TTSToggle = memo(function TTSToggle({
 	onStop,
 	className,
 }: TTSToggleProps) {
+	const voiceSettings = useVoiceSettings();
+	const [settingsOpen, setSettingsOpen] = useState(false);
+
 	// Determine button state and appearance
 	const getButtonState = () => {
 		if (!isEnabled) {
@@ -89,9 +100,9 @@ export const TTSToggle = memo(function TTSToggle({
 
 	return (
 		<TooltipProvider>
-			<Tooltip>
-				<TooltipTrigger asChild>
-					<div className="relative flex gap-1">
+			<div className="relative flex gap-1">
+				<Tooltip>
+					<TooltipTrigger asChild>
 						<Button
 							variant={buttonState.variant}
 							size="icon"
@@ -101,9 +112,16 @@ export const TTSToggle = memo(function TTSToggle({
 						>
 							{buttonState.icon}
 						</Button>
+					</TooltipTrigger>
+					<TooltipContent>
+						<p>{buttonState.tooltip}</p>
+					</TooltipContent>
+				</Tooltip>
 
-						{/* Stop button (only show when speaking) */}
-						{isSpeaking && (
+				{/* Stop button (only show when speaking) */}
+				{isSpeaking && (
+					<Tooltip>
+						<TooltipTrigger asChild>
 							<Button
 								variant="ghost"
 								size="icon"
@@ -113,13 +131,60 @@ export const TTSToggle = memo(function TTSToggle({
 							>
 								<VolumeX className="size-4" />
 							</Button>
-						)}
-					</div>
-				</TooltipTrigger>
-				<TooltipContent>
-					<p>{buttonState.tooltip}</p>
-				</TooltipContent>
-			</Tooltip>
+						</TooltipTrigger>
+						<TooltipContent>
+							<p>Stop speech</p>
+						</TooltipContent>
+					</Tooltip>
+				)}
+
+				{/* Settings button */}
+				<Popover open={settingsOpen} onOpenChange={setSettingsOpen}>
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<PopoverTrigger asChild>
+								<Button
+									variant="ghost"
+									size="icon"
+									className="size-8"
+									aria-label="Voice settings"
+								>
+									{SETTINGS_ICON}
+								</Button>
+							</PopoverTrigger>
+						</TooltipTrigger>
+						<TooltipContent>
+							<p>Voice settings</p>
+						</TooltipContent>
+					</Tooltip>
+					<PopoverContent className="w-80" align="end">
+						<div className="space-y-2">
+							<h4 className="font-medium leading-none">Voice Settings</h4>
+							<p className="text-sm text-muted-foreground">
+								Configure language, voice, and quality
+							</p>
+						</div>
+						<VoiceSettings
+							language={voiceSettings.ttsLanguage}
+							voiceName={voiceSettings.ttsVoiceName}
+							rate={voiceSettings.ttsRate}
+							pitch={voiceSettings.ttsPitch}
+							volume={voiceSettings.ttsVolume}
+							onChange={useCallback((settings) => {
+								voiceSettings.updateSettings({
+									ttsLanguage: settings.language,
+									ttsVoiceName: settings.voiceName,
+									ttsRate: settings.rate,
+									ttsPitch: settings.pitch,
+									ttsVolume: settings.volume,
+									// Also update STT language to match
+									sttLanguage: settings.language,
+								});
+							}, [voiceSettings])}
+						/>
+					</PopoverContent>
+				</Popover>
+			</div>
 		</TooltipProvider>
 	);
 });

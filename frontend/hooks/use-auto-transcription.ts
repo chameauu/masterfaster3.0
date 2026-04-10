@@ -26,6 +26,12 @@ export interface AutoTranscriptionOptions {
 	threshold?: number;
 	/** Silence duration in ms */
 	silenceDuration?: number;
+	/** Language for speech recognition (BCP-47 code, e.g., 'en-US', 'es-ES') */
+	language?: string;
+	/** Domain-specific phrases for better accuracy */
+	phrases?: string[];
+	/** Pause recording (e.g., when TTS is speaking) */
+	paused?: boolean;
 }
 
 export interface AutoTranscriptionResult {
@@ -50,7 +56,7 @@ export interface AutoTranscriptionResult {
 }
 
 export function useAutoTranscription(options: AutoTranscriptionOptions): AutoTranscriptionResult {
-	const { onTranscript, enabled = false, threshold, silenceDuration } = options;
+	const { onTranscript, enabled = false, threshold, silenceDuration, language = 'en-US', phrases = [], paused = false } = options;
 
 	const [isTranscribing, setIsTranscribing] = useState(false);
 	const [error, setError] = useState<string | null>(null);
@@ -122,9 +128,14 @@ export function useAutoTranscription(options: AutoTranscriptionOptions): AutoTra
 		},
 	});
 
-	// Auto start/stop recording based on speech detection
+	// Auto start/stop recording based on speech detection (but not when paused)
 	useEffect(() => {
-		if (!vad.isListening) {
+		if (!vad.isListening || paused) {
+			// If paused and currently recording, stop recording
+			if (paused && isRecordingRef.current) {
+				recording.stopRecording();
+				wasRecordingRef.current = false;
+			}
 			return;
 		}
 
@@ -139,7 +150,7 @@ export function useAutoTranscription(options: AutoTranscriptionOptions): AutoTra
 			recording.stopRecording();
 			wasRecordingRef.current = false;
 		}
-	}, [vad.isSpeaking, vad.isListening, recording.startRecording, recording.stopRecording]);
+	}, [vad.isSpeaking, vad.isListening, paused, recording.startRecording, recording.stopRecording]);
 
 	// Enable voice
 	const enable = useCallback(async () => {

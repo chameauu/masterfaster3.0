@@ -12,7 +12,7 @@ from app.services.voice.pipecat_service import PipecatService
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/v1/pipecat", tags=["pipecat"])
+router = APIRouter(prefix="/pipecat", tags=["pipecat"])
 
 
 @router.websocket("/ws")

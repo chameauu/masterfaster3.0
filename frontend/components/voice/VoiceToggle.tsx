@@ -17,6 +17,7 @@ import { memo, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAutoTranscription } from "@/hooks/use-auto-transcription";
+import { useVoiceSettings } from "@/contexts/voice-settings-context";
 
 // Hoist static JSX (rendering-hoist-jsx)
 const MIC_ICON = <Mic className="size-5" />;
@@ -28,19 +29,27 @@ interface VoiceToggleProps {
 	onTranscript: (text: string) => void;
 	/** Optional className for styling */
 	className?: string;
-	/** Auto-enable voice on mount (default: true for accessibility) */
+	/** Auto-enable voice on mount (default: false) */
 	autoEnable?: boolean;
+	/** Pause recording (e.g., when TTS is speaking) */
+	paused?: boolean;
 }
 
 export const VoiceToggle = memo(function VoiceToggle({
 	onTranscript,
 	className,
-	autoEnable = true,
+	autoEnable = false,
+	paused = false,
 }: VoiceToggleProps) {
+	const voiceSettings = useVoiceSettings();
+	
 	const voice = useAutoTranscription({
 		onTranscript,
-		threshold: 30, // Adjust based on environment
-		silenceDuration: 1500, // 1.5 seconds
+		threshold: voiceSettings.vadThreshold,
+		silenceDuration: voiceSettings.vadSilenceDuration,
+		language: voiceSettings.sttLanguage,
+		phrases: voiceSettings.sttPhrases,
+		paused,
 	});
 
 	// Auto-enable voice on mount for accessibility (visually impaired users)
@@ -48,7 +57,10 @@ export const VoiceToggle = memo(function VoiceToggle({
 		if (autoEnable && !voice.isEnabled) {
 			// Small delay to ensure component is fully mounted
 			const timer = setTimeout(() => {
-				voice.enable();
+				// Silently try to enable - don't show errors if it fails on auto-enable
+				voice.enable().catch(() => {
+					// Ignore errors on auto-enable - user can manually enable if needed
+				});
 			}, 500);
 			return () => clearTimeout(timer);
 		}
