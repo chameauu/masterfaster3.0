@@ -92,6 +92,8 @@ import { useMediaQuery } from "@/hooks/use-media-query";
 import { useElectronAPI } from "@/hooks/use-platform";
 import { cn } from "@/lib/utils";
 import { VoiceToggle } from "@/components/voice/VoiceToggle";
+import { TTSToggle } from "@/components/voice/TTSToggle";
+import { useTextToSpeech } from "@/hooks/use-text-to-speech";
 
 const COMPOSER_PLACEHOLDER = "Ask anything · Type / for prompts · Type @ to mention docs";
 
@@ -362,7 +364,7 @@ const Composer: FC = () => {
 	useEffect(() => {
 		if (!electronAPI || clipboardLoadedRef.current) return;
 		clipboardLoadedRef.current = true;
-		electronAPI.getQuickAskText().then((text) => {
+		electronAPI.getQuickAskText().then((text: string | null) => {
 			if (text) {
 				setClipboardInitialText(text);
 			}
@@ -671,6 +673,58 @@ const Composer: FC = () => {
 		},
 		[mentionedDocuments, setMentionedDocuments]
 	);
+	
+	// TTS state and handlers
+	const [ttsEnabled, setTtsEnabled] = useState(false);
+	const tts = useTextToSpeech({
+		rate: 1.0,
+		pitch: 1.0,
+		volume: 1.0,
+	});
+	
+	// Auto-speak AI responses when TTS is enabled
+	const lastMessageContent = useAuiState(({ thread }) => {
+		const messages = thread.messages;
+		if (messages.length === 0) return null;
+		const lastMsg = messages[messages.length - 1];
+		if (lastMsg.role !== "assistant") return null;
+		// Get text content from message
+		const textContent = lastMsg.content
+			.filter((c) => c.type === "text")
+			.map((c) => ("text" in c ? c.text : ""))
+			.join(" ");
+		return textContent;
+	});
+	
+	// Speak AI responses automatically
+	useEffect(() => {
+		if (ttsEnabled && lastMessageContent && !isThreadRunning) {
+			// Wait a bit for streaming to complete
+			const timer = setTimeout(() => {
+				tts.speak(lastMessageContent);
+			}, 500);
+			return () => clearTimeout(timer);
+		}
+	}, [ttsEnabled, lastMessageContent, isThreadRunning, tts.speak]);
+	
+	const handleTTSToggle = useCallback(() => {
+		setTtsEnabled((prev) => !prev);
+		if (tts.isSpeaking) {
+			tts.stop();
+		}
+	}, [tts]);
+	
+	const handleTTSPauseResume = useCallback(() => {
+		if (tts.isPaused) {
+			tts.resume();
+		} else {
+			tts.pause();
+		}
+	}, [tts]);
+	
+	const handleTTSStop = useCallback(() => {
+		tts.stop();
+	}, [tts]);
 
 	return (
 		<ComposerPrimitive.Root
@@ -762,7 +816,15 @@ const Composer: FC = () => {
 						/>,
 						document.body
 					)}
-				<ComposerAction isBlockedByOtherUser={isBlockedByOtherUser} />
+				<ComposerAction 
+					isBlockedByOtherUser={isBlockedByOtherUser}
+					ttsEnabled={ttsEnabled}
+					ttsIsSpeaking={tts.isSpeaking}
+					ttsIsPaused={tts.isPaused}
+					onTTSToggle={handleTTSToggle}
+					onTTSPauseResume={handleTTSPauseResume}
+					onTTSStop={handleTTSStop}
+				/>
 				<ConnectorIndicator showTrigger={false} />
 				<ConnectToolsBanner isThreadEmpty={isThreadEmpty} />
 			</div>
@@ -772,9 +834,23 @@ const Composer: FC = () => {
 
 interface ComposerActionProps {
 	isBlockedByOtherUser?: boolean;
+	ttsEnabled: boolean;
+	ttsIsSpeaking: boolean;
+	ttsIsPaused: boolean;
+	onTTSToggle: () => void;
+	onTTSPauseResume: () => void;
+	onTTSStop: () => void;
 }
 
-const ComposerAction: FC<ComposerActionProps> = ({ isBlockedByOtherUser = false }) => {
+const ComposerAction: FC<ComposerActionProps> = ({ 
+	isBlockedByOtherUser = false,
+	ttsEnabled,
+	ttsIsSpeaking,
+	ttsIsPaused,
+	onTTSToggle,
+	onTTSPauseResume,
+	onTTSStop,
+}) => {
 	const mentionedDocuments = useAtomValue(mentionedDocumentsAtom);
 	const sidebarDocs = useAtomValue(sidebarSelectedDocumentsAtom);
 	const setDocumentsSidebarOpen = useSetAtom(documentsSidebarOpenAtom);
@@ -782,9 +858,23 @@ const ComposerAction: FC<ComposerActionProps> = ({ isBlockedByOtherUser = false 
 	const [toolsPopoverOpen, setToolsPopoverOpen] = useState(false);
 	const isDesktop = useMediaQuery("(min-width: 640px)");
 	const { openDialog: openUploadDialog } = useDocumentUploadDialog();
-	const [toolsScrollPos, setToolsScrollPos] = useState<"top" | "middle" | "bottom">("top");
-	const toolsRafRef = useRef<number>();
 	const aui = useAui();
+	
+	// Handle voice transcript - insert into composer and auto-submit
+	const handleVoiceTranscript = useCallback(
+		(transcript: string) => {
+			// Set the transcript in composer
+			aui.composer().setText(transcript);
+			
+			// Auto-submit after a short delay to ensure text is set
+			setTimeout(() => {
+				aui.composer().send();
+			}, 100);
+		},
+		[aui]
+	);
+	const [toolsScrollPos, setToolsScrollPos] = useState<"top" | "middle" | "bottom">("top");
+	const toolsRafRef = useRef<number | undefined>(undefined);
 	
 	const handleToolsScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
 		const el = e.currentTarget;
@@ -804,19 +894,6 @@ const ComposerAction: FC<ComposerActionProps> = ({ isBlockedByOtherUser = false 
 		[]
 	);
 	
-	// Handle voice transcript - insert into composer and auto-submit
-	const handleVoiceTranscript = useCallback(
-		(transcript: string) => {
-			// Set the transcript in composer
-			aui.composer().setText(transcript);
-			
-			// Auto-submit after a short delay to ensure text is set
-			setTimeout(() => {
-				aui.composer().send();
-			}, 100);
-		},
-		[aui]
-	);
 	const isComposerTextEmpty = useAuiState(({ composer }) => {
 		const text = composer.text?.trim() || "";
 		return text.length === 0;
@@ -1227,6 +1304,14 @@ const ComposerAction: FC<ComposerActionProps> = ({ isBlockedByOtherUser = false 
 			)}
 			<div className="flex items-center gap-2">
 				<VoiceToggle onTranscript={handleVoiceTranscript} />
+				<TTSToggle
+					isEnabled={ttsEnabled}
+					isSpeaking={ttsIsSpeaking}
+					isPaused={ttsIsPaused}
+					onToggle={onTTSToggle}
+					onPauseResume={onTTSPauseResume}
+					onStop={onTTSStop}
+				/>
 				
 				<AuiIf condition={({ thread }) => !thread.isRunning}>
 					<ComposerPrimitive.Send asChild disabled={isSendDisabled}>
