@@ -74,12 +74,14 @@ Assistant: "That was from your biology textbook, chapter 3, page 23."
 - **Piper TTS** - High-quality text-to-speech
 - **Gemma 4 E2B** - 2.3B parameter LLM for intent understanding
 
-**Frontend (React/Next.js):**
+**Frontend (Web & Mobile):**
 - **React 19** - UI framework
-- **Next.js 16** - React framework with Turbopack
-- **TypeScript** - Type safety
-- **Web Audio API** - Audio processing
-- **MediaStream API** - Microphone access
+- **Next.js 16** - Web app with Turbopack
+- **React Native + Expo** - Native mobile apps (iOS & Android)
+- **TypeScript** - Type safety across all platforms
+- **Web Audio API** - Audio processing (web)
+- **Expo Audio** - Native audio recording (mobile)
+- **MediaStream API** - Microphone access (web)
 - **WebSocket** - Real-time communication
 
 **Backend :**
@@ -115,19 +117,94 @@ User hears response
 
 ---
 
+## 📱 Mobile App
+
+VocalAIze is available as a native mobile app for iOS and Android, built with **React Native** and **Expo**. The mobile app brings the same powerful voice-first experience to your pocket, optimized for on-the-go accessibility.
+
+
+
+### Mobile Features
+
+🎤 **Native Voice Interface**
+- Optimized audio recording with Expo Audio
+- Background audio support - continue listening while using other apps
+- Hardware button integration for hands-free control
+
+🔐 **Biometric Authentication**
+- Face ID / Touch ID support for secure, screen-free login
+- No need to type passwords
+
+🔔 **Smart Notifications**
+- Get notified about document updates
+- Quiz reminders and study session alerts
+- Voice-first notification interactions
+
+📱 **Native Experience**
+- Smooth 60 FPS animations with React Native Reanimated
+- Platform-specific navigation (iOS/Android)
+- Native gestures and interactions
+- Optimized for one-handed use
+
+### Mobile Architecture
+
+The mobile app shares **60-70% of its codebase** with the web app through a monorepo structure, ensuring consistency while delivering platform-optimized experiences:
+
+
+**Shared Components (60-70%):**
+- API client and data fetching logic
+- Business logic and state management
+- TypeScript types and interfaces
+- Custom hooks (useChat, useAuth, useVoice)
+- Authentication and authorization
+- RAG retrieval logic
+
+**Platform-Specific (30-40%):**
+- UI components (Radix UI for web, React Native for mobile)
+- Navigation (Next.js Router vs Expo Router)
+- Voice interface (WebRTC for web, Expo Audio for mobile)
+- Styling (Tailwind CSS vs StyleSheet)
+- Platform APIs (notifications, biometrics, etc.)
+
+### Mobile Tech Stack
+
+- **Expo SDK 55** - React Native framework for universal apps
+- **Expo Router** - File-based navigation (similar to Next.js)
+- **Expo Audio** - Native audio recording and playback
+- **React Native Reanimated** - Smooth 60 FPS animations
+- **React Native Gesture Handler** - Native touch gestures
+- **React Query** - Data fetching and caching (shared with web)
+- **Zustand** - State management (shared with web)
+
+
+
+### For Developers
+
+Interested in building or contributing to the mobile app? Check out our comprehensive guides:
+- [React Native Migration Guide](docs/migration/REACT_NATIVE_MIGRATION_GUIDE.md) - Complete migration strategy
+- [Migration Summary](docs/migration/MIGRATION_SUMMARY.md) - Quick overview
+
+---
+
 ## 🚀 Quick Start
 
 ### Prerequisites
 
+**For Web App:**
 - Python 3.12+
 - PostgreSQL 14+
 - Redis 7+
 - Ollama (for Gemma 4 E2B)
-- Node.js 18+ (for frontend)
-- uv (Package manager for Python) - see installation below
-- pnpm (Package manager for Node.js) - see installation below
+- Node.js 18+
+- uv (Package manager for Python)
+- pnpm (Package manager for Node.js)
 - 8-16GB RAM (16GB recommended)
 - Optional: GPU with 4-6GB VRAM (10x faster)
+
+**Additional for Mobile App:**
+- Expo CLI (`npm install -g expo-cli`)
+- iOS: Xcode 14+ (macOS only)
+- Android: Android Studio with SDK 33+
+- Physical device or emulator for testing
 
 ### Installation
 
@@ -224,6 +301,7 @@ pnpm dev
 
 9. **Access voice assistant**
 
+**Web App:**
 Open your browser and navigate to:
 ```
 http://localhost:3000/voice-demo
@@ -234,9 +312,29 @@ Or access the full dashboard:
 http://localhost:3000/dashboard
 ```
 
+**Mobile App (Optional):**
+```bash
+# Navigate to mobile app directory
+cd apps/mobile
+
+# Install dependencies
+pnpm install
+
+# Start Expo development server
+pnpm start
+
+# Run on iOS simulator
+pnpm ios
+
+# Run on Android emulator
+pnpm android
+
+# Or scan QR code with Expo Go app on physical device
+```
+
 **First-time setup:**
 1. Grant microphone permission when prompted
-2. Click the microphone button
+2. Click/tap the microphone button
 3. Start speaking!
 4. Adjust volume with the slider
 
@@ -288,6 +386,8 @@ Visit `/voice-demo` to test the voice assistant:
 ### For Developers
 - [Project Roadmap](docs/VOICE_ASSISTANT_PROJECT_ROADMAP.md) - Complete project vision and progress
 - [Architecture Overview](docs/VOICE_ASSISTANT_ARCHITECTURE.md) - System design
+- [React Native Migration Guide](docs/migration/REACT_NATIVE_MIGRATION_GUIDE.md) - Mobile app development
+- [Migration Summary](docs/migration/MIGRATION_SUMMARY.md) - Quick mobile overview
 - [Implementation Summary](docs/PIPECAT_IMPLEMENTATION_SUMMARY.md) - What we built
 - [Week 1 Summary](docs/PIPECAT_WEEK1_SUMMARY.md) - Backend pipeline
 - [Week 2 Status](docs/PIPECAT_WEEK2_STATUS.md) - Frontend integration
@@ -350,6 +450,7 @@ Visit `/voice-demo` to test the voice assistant:
 - ✅ No screen required
 - ✅ Purpose-built for accessibility
 - ✅ Every feature accessible by voice
+- ✅ Native mobile apps (iOS & Android)
 
 ---
 
@@ -381,6 +482,30 @@ Visit `/voice-demo` to test the voice assistant:
 
 ```
 masterfaster3.0/
+├── apps/                      # Applications (Monorepo)
+│   ├── web/                   # Next.js Web App (migrating from frontend/)
+│   │   └── ...                # (Same structure as frontend/)
+│   └── mobile/                # React Native Mobile App (Expo)
+│       ├── app/               # Expo Router app directory
+│       │   ├── (auth)/        # Authentication screens
+│       │   ├── (tabs)/        # Tab navigation
+│       │   ├── voice/         # Voice interface
+│       │   └── _layout.tsx    # Root layout
+│       ├── components/        # React Native components
+│       ├── hooks/             # Mobile-specific hooks
+│       ├── assets/            # Images, fonts, etc.
+│       ├── app.json           # Expo configuration
+│       ├── package.json       # Dependencies
+│       └── tsconfig.json      # TypeScript config
+├── packages/                  # Shared Code (Monorepo)
+│   ├── shared/                # Shared business logic (60-70% code reuse)
+│   │   ├── api/               # API client
+│   │   ├── hooks/             # Shared React hooks
+│   │   ├── stores/            # Zustand stores
+│   │   ├── types/             # TypeScript types
+│   │   └── utils/             # Utility functions
+│   ├── ui-web/                # Web-specific UI components
+│   └── ui-native/             # Native-specific UI components
 ├── backend/                    # FastAPI Backend
 │   ├── alembic/               # Database migrations
 │   ├── app/                   # Main application
@@ -646,6 +771,7 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guid
 ### Areas We Need Help
 
 - 🎤 Voice interface improvements
+- 📱 Mobile app development (React Native)
 - ♿ Accessibility enhancements
 - 🌐 Internationalization
 - 📝 Documentation
@@ -685,11 +811,12 @@ Please read our [Code of Conduct](CODE_OF_CONDUCT.md) before contributing.
 
 ### Future Enhancements
 - [ ] Multi-language support
-- [ ] Mobile app
-- [ ] Offline mode
+- [x] Mobile app (React Native + Expo) - In Development
+- [ ] Offline mode for mobile
 - [ ] Advanced analytics
 - [ ] Voice bookmarks
 - [ ] Study session mode
+- [ ] Wearable device support (Apple Watch, Android Wear)
 
 ---
 

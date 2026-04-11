@@ -5,7 +5,9 @@ node_modules/
 .ruff_cache/
 disable/
 .venv
+migration/
 .pnpm-store
 .DS_Store
 demo/
 deepagents/
+presentation/
