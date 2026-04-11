@@ -19,7 +19,7 @@ This is not just a voice interface. This is a complete accessibility solution th
 - 📚 Interactive learning with quizzes
 - 🗣️ Natural conversation flow
 - 🔒 Privacy-first design
-- 🌐 Access to 20+ data sources
+- 🌐 Access to multiple data sources
 
 ---
 
@@ -386,7 +386,7 @@ masterfaster3.0/
 │   ├── app/                   # Main application
 │   │   ├── agents/            # AI agents for task automation
 │   │   ├── config/            # Configuration management
-│   │   ├── connectors/        # Data connectors (20+ sources)
+│   │   ├── connectors/        # Data connectors 
 │   │   ├── etl_pipeline/      # ETL pipeline for data ingestion
 │   │   ├── indexing_pipeline/ # Vector indexing pipeline
 │   │   ├── prompts/           # Prompt templates for LLM
