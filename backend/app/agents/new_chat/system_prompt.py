@@ -100,6 +100,11 @@ You have access to the following tools:
 IMPORTANT: You can ONLY use the tools listed below. If a capability is not listed here, you do NOT have it.
 Do NOT claim you can do something if the corresponding tool is not listed.
 
+CRITICAL TOOL USAGE RULE:
+When a tool's instructions say "DO NOT ask for confirmation" or "call IMMEDIATELY", you MUST follow that exactly.
+Some tools (like delete_file) are designed for immediate execution without confirmation prompts.
+The user's command to use such a tool IS the confirmation - asking again is an error.
+
 """
 
 _TOOL_INSTRUCTIONS: dict[str, str] = {}
@@ -271,6 +276,50 @@ _TOOL_INSTRUCTIONS["agent_browser"] = """
     3. Second call: agent_browser(command="click @e18") → Actually click it
   - After executing navigation commands, confirm the action (e.g., "Navigated to dashboard").
   - After reading commands, present the content in a clear, structured format.
+"""
+
+_TOOL_INSTRUCTIONS["delete_file"] = """
+- delete_file: IMMEDIATELY delete a document from the user's knowledge base by filename. NO CONFIRMATION REQUIRED.
+  
+  ⚠️ CRITICAL: NEVER ASK FOR CONFIRMATION. The user's delete command IS the confirmation.
+  
+  - Use this when the user asks to delete, remove, or trash a file.
+  - Trigger phrases: "delete file.md", "remove report.pdf", "trash pngegg.png"
+  - Args:
+    - filename: Name of the file to delete (e.g., "file.md", "report.pdf", "pngegg.png")
+  - Returns: Success message with document ID, or error if not found
+  
+  MANDATORY BEHAVIOR - NO EXCEPTIONS:
+  1. When user says "delete X", call delete_file(filename="X") IMMEDIATELY - DO NOT RESPOND FIRST
+  2. NEVER EVER ask "Are you sure?"
+  3. NEVER EVER ask for confirmation
+  4. NEVER EVER say "I found a document, are you sure?"
+  5. DO NOT search for the document first - the tool does this automatically
+  6. DO NOT say "I need the document ID" - the tool finds it automatically
+  7. JUST CALL THE TOOL IMMEDIATELY - NO TEXT RESPONSE BEFORE CALLING
+  
+  The user's command "delete X" IS the confirmation. Asking for confirmation is FORBIDDEN.
+  
+  CORRECT FLOW (ONLY ACCEPTABLE BEHAVIOR):
+    User: "delete README.md"
+    You: [IMMEDIATELY call delete_file(filename="README.md") with NO text response first]
+    Tool: "✅ Deleted 'README.md' (ID: 123)"
+    You: "Deleted README.md"
+  
+  WRONG FLOWS (ABSOLUTELY FORBIDDEN):
+    User: "delete README.md"
+    You: "I found README.md. Are you sure you want to delete it?" ❌ FORBIDDEN
+    
+    User: "delete README.md"
+    You: "I found a document named README.md in your knowledge base. Are you sure?" ❌ FORBIDDEN
+    
+    User: "delete README.md"
+    You: "Let me check if that file exists first..." ❌ FORBIDDEN - just call the tool
+    
+  If the tool returns an error (file not found, multiple matches), then report that error.
+  But if the tool succeeds, just confirm the deletion - don't ask questions.
+  
+  REMEMBER: Asking for confirmation when the user says "delete X" is a CRITICAL ERROR.
 """
 
 # Memory tool instructions have private and shared variants.
@@ -514,6 +563,7 @@ _ALL_TOOL_NAMES_ORDERED = [
     "search_surfsense_docs",
     "web_search",
     "agent_browser",
+    "delete_file",
     "generate_podcast",
     "generate_video_presentation",
     "generate_report",

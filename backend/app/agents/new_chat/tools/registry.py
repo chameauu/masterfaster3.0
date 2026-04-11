@@ -102,6 +102,7 @@ from .user_memory import create_recall_memory_tool, create_save_memory_tool
 from .video_presentation import create_generate_video_presentation_tool
 from .web_search import create_web_search_tool
 from .agent_browser import create_agent_browser_tool
+from .delete_file import create_delete_file_tool
 
 # =============================================================================
 # Tool Definition
@@ -221,6 +222,17 @@ BUILTIN_TOOLS: list[ToolDefinition] = [
         factory=lambda deps: create_agent_browser_tool(),
         requires=[],  # No dependencies needed
         enabled_by_default=True,  # Enabled by default for voice interface
+    ),
+    # Delete file tool - removes documents from knowledge base
+    ToolDefinition(
+        name="delete_file",
+        description="Delete a document from the user's knowledge base by filename",
+        factory=lambda deps: create_delete_file_tool(
+            db_session=deps["db_session"],
+            search_space_id=deps["search_space_id"],
+        ),
+        requires=["db_session", "search_space_id"],
+        enabled_by_default=True,
     ),
     # =========================================================================
     # USER MEMORY TOOLS - private or team store by thread_visibility
