@@ -1,6 +1,6 @@
-# Voice-First Research Assistant for Visually Impaired Users
+# VocalAIze Research Assistant for Visually Impaired Users
 
-> **A fully voice-controlled research assistant built on VocalAIze, designed specifically for accessibility and independence.**
+> **A fully voice-controlled research assistant, designed specifically for accessibility and independence.**
 
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Accessibility](https://img.shields.io/badge/accessibility-WCAG%202.1%20AAA-green.svg)](docs/ACCESSIBILITY_FIRST_DESIGN.md)
